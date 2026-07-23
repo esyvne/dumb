@@ -18,12 +18,11 @@ function env.import(id)
 end
 
 function env.getgitpath(where)
-    local mainBuild = "https://raw.githubusercontent.com/IcantAffordSynapse/Dumb/refs/heads/main/"
-    if where == "src" then
-        return mainBuild .. "src/"
-    elseif where == "games" then
-        return mainBuild .. "src/games/"
+    local mainBuild = "https://raw.githubusercontent.com/esyvne/dumb/refs/heads/main/"
+    if where == "games" then
+        return mainBuild .. "games/"
     end
+    return mainBuild
 end
 
 function env.setconfig(key, value)
@@ -45,5 +44,6 @@ game:GetService("GuiService"):SetGameplayPausedNotificationEnabled(false)
 loadstring(game:HttpGet(getgitpath("src").."ui.lua"))()
 
 if queue_on_teleport then
-    queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/IcantAffordSynapse/Dumb/refs/heads/main/src/init.lua"))()')
+    queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/esyvne/dumb/refs/heads/main/init.lua"))()')
 end
+
