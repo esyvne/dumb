@@ -1,6 +1,13 @@
+local import = import or (getgenv and getgenv().import) or _G.import
+local getgitpath = getgitpath or (getgenv and getgenv().getgitpath) or _G.getgitpath
+
 local elements = import("rbxassetid://113037265185555")
 local stuff = {}
-local gameList = game:GetService("HttpService"):JSONDecode(game:HttpGet(getgitpath("src").. "gameslist.json"))
+local gameList = {}
+pcall(function()
+    gameList = game:GetService("HttpService"):JSONDecode(game:HttpGet(getgitpath("src") .. "gameslist.json"))
+end)
+
 
 -- Dark Testing UI Theme Palette
 local DarkTheme = {

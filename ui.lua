@@ -1,12 +1,26 @@
 local hui = gethui or get_hidden_gui
-local getexec = identifyexecutor
+local getexec = identifyexecutor or getexecutor or (function() return "Unknown" end)
 local coregui = game:GetService("CoreGui")
 local userinputservice = game:GetService("UserInputService")
 local httpservice = game:GetService("HttpService")
 local exservice = game:GetService("ExperienceService")
 local tweenservice = game:GetService("TweenService")
 
+local import = import or (getgenv and getgenv().import) or _G.import
+local getgitpath = getgitpath or (getgenv and getgenv().getgitpath) or _G.getgitpath
+
 local ui = import("rbxassetid://75281832304062")
+
+if not ui then
+    warn("[Dumb UI Error]: Failed to load UI asset model (rbxassetid://75281832304062)")
+    return
+end
+
+pcall(function()
+    if ui:IsA("ScreenGui") then
+        ui.Enabled = true
+    end
+end)
 
 ui.Parent = hui and hui() or coregui
 
@@ -28,39 +42,49 @@ local DarkTheme = {
     ToggleKnob = Color3.fromRGB(245, 245, 250)     -- Toggle Knob White (#F5F5FA)
 }
 
-local ToggleButton = ui.togglebtn
-local MainFrame = ui.Frame
+local ToggleButton = ui:FindFirstChild("togglebtn") or ui:FindFirstChild("ToggleBtn")
+local MainFrame = ui:FindFirstChild("Frame") or ui:FindFirstChild("MainFrame")
 
-local Topbar = MainFrame.TopBar
-local SectionContainers = MainFrame.sectionContainers
-local TabList = MainFrame.tablist
+if not MainFrame then
+    warn("[Dumb UI Error]: Main frame not found in UI asset")
+    return
+end
 
-local HideButton = Topbar.hidebtn
+MainFrame.Visible = true
+if ToggleButton then
+    ToggleButton.Visible = false
+end
+
+local Topbar = MainFrame:FindFirstChild("TopBar") or MainFrame:FindFirstChild("Topbar")
+local SectionContainers = MainFrame:FindFirstChild("sectionContainers") or MainFrame:FindFirstChild("SectionContainers")
+local TabList = MainFrame:FindFirstChild("tablist") or MainFrame:FindFirstChild("TabList")
+
+local HideButton = Topbar and (Topbar:FindFirstChild("hidebtn") or Topbar:FindFirstChild("HideBtn"))
 
 local Sections = {
     Home = {
-        TabBtn = TabList.HomeTab,
-        Container = SectionContainers.homeframe
+        TabBtn = TabList and TabList:FindFirstChild("HomeTab"),
+        Container = SectionContainers and SectionContainers:FindFirstChild("homeframe")
     },
 
     Game = {
-        TabBtn = TabList.GameTab,
-        Container = SectionContainers.gameFrame
+        TabBtn = TabList and TabList:FindFirstChild("GameTab"),
+        Container = SectionContainers and SectionContainers:FindFirstChild("gameFrame")
     },
 
     GamesList = {
-        TabBtn = TabList.GameslistTab,
-        Container = SectionContainers.gamelistFrame
+        TabBtn = TabList and TabList:FindFirstChild("GameslistTab"),
+        Container = SectionContainers and SectionContainers:FindFirstChild("gamelistFrame")
     },
 
     Settings = {
-        TabBtn = TabList.SettingsTab,
-        Container = SectionContainers.settingsFrame
+        TabBtn = TabList and TabList:FindFirstChild("SettingsTab"),
+        Container = SectionContainers and SectionContainers:FindFirstChild("settingsFrame")
     },
 
     Credits = {
-        TabBtn = TabList.CreditsTab,
-        Container = SectionContainers.creditsFrame
+        TabBtn = TabList and TabList:FindFirstChild("CreditsTab"),
+        Container = SectionContainers and SectionContainers:FindFirstChild("creditsFrame")
     }
 }
 
@@ -110,8 +134,8 @@ for _, desc in ipairs(ui:GetDescendants()) do
 end
 
 MainFrame.BackgroundColor3 = DarkTheme.MainBg
-Topbar.BackgroundColor3 = DarkTheme.TopbarBg
-TabList.BackgroundColor3 = DarkTheme.TabListBg
+if Topbar then Topbar.BackgroundColor3 = DarkTheme.TopbarBg end
+if TabList then TabList.BackgroundColor3 = DarkTheme.TabListBg end
 if SectionContainers then
     SectionContainers.BackgroundColor3 = DarkTheme.MainBg
     for _, child in ipairs(SectionContainers:GetChildren()) do
@@ -147,6 +171,7 @@ end
 local CurSection
 
 local function updateTabVisuals(sect, isActive)
+    if not sect or not sect.TabBtn then return end
     if isActive then
         sect.TabBtn.BackgroundColor3 = DarkTheme.TabActiveBg
         sect.TabBtn.BackgroundTransparency = 0
@@ -172,56 +197,64 @@ local function updateTabVisuals(sect, isActive)
 end
 
 for _, sect in pairs(Sections) do
-    updateTabVisuals(sect, false)
+    if sect.TabBtn then
+        updateTabVisuals(sect, false)
 
-    sect.TabBtn.MouseEnter:Connect(function()
-        if CurSection ~= sect then
-            sect.TabBtn.BackgroundTransparency = 0.6
-            sect.TabBtn.BackgroundColor3 = DarkTheme.CardHoverBg
-        end
-        for _, stroke in pairs(sect.TabBtn:GetChildren()) do
-            if stroke.Name == "InnerShadow" then
-                stroke.Transparency = 0.95
+        sect.TabBtn.MouseEnter:Connect(function()
+            if CurSection ~= sect then
+                sect.TabBtn.BackgroundTransparency = 0.6
+                sect.TabBtn.BackgroundColor3 = DarkTheme.CardHoverBg
             end
-        end
-    end)
-
-    sect.TabBtn.MouseLeave:Connect(function()
-        if CurSection ~= sect then
-            updateTabVisuals(sect, false)
-        end
-        for _, stroke in pairs(sect.TabBtn:GetChildren()) do
-            if stroke.Name == "InnerShadow" then
-                stroke.Transparency = 1
+            for _, stroke in pairs(sect.TabBtn:GetChildren()) do
+                if stroke.Name == "InnerShadow" then
+                    stroke.Transparency = 0.95
+                end
             end
-        end
-    end)
+        end)
 
-    sect.TabBtn.MouseButton1Click:Connect(function()
-        if CurSection == sect then return end
+        sect.TabBtn.MouseLeave:Connect(function()
+            if CurSection ~= sect then
+                updateTabVisuals(sect, false)
+            end
+            for _, stroke in pairs(sect.TabBtn:GetChildren()) do
+                if stroke.Name == "InnerShadow" then
+                    stroke.Transparency = 1
+                end
+            end
+        end)
 
-        if CurSection then
-            updateTabVisuals(CurSection, false)
-            CurSection.Container:TweenPosition(UDim2.new(0.5, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-        end
+        sect.TabBtn.MouseButton1Click:Connect(function()
+            if CurSection == sect then return end
 
-        updateTabVisuals(sect, true)
-        sect.Container:TweenPosition(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-        sect.Container.Visible = true
+            if CurSection and CurSection.Container then
+                updateTabVisuals(CurSection, false)
+                CurSection.Container:TweenPosition(UDim2.new(0.5, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
+            end
 
-        CurSection = sect
+            updateTabVisuals(sect, true)
+            if sect.Container then
+                sect.Container:TweenPosition(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
+                sect.Container.Visible = true
+            end
+
+            CurSection = sect
+        end)
+    end
+end
+
+if HideButton then
+    HideButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = false
+        if ToggleButton then ToggleButton.Visible = true end
     end)
 end
 
-HideButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
-    ToggleButton.Visible = true
-end)
-
-ToggleButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = true
-    ToggleButton.Visible = false
-end)
+if ToggleButton then
+    ToggleButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = true
+        ToggleButton.Visible = false
+    end)
+end
 
 local dragging = false
 local dragInput, mousePos, framePos
@@ -258,76 +291,136 @@ userinputservice.InputChanged:Connect(function(input)
     end
 end)
 
-Sections.Home.Container.bugsLabel.Text = Sections.Home.Container.bugsLabel.Text:gsub("redacted", "discord.gg/vaehz")
-Sections.Home.Container.discan.Text = Sections.Home.Container.discan.Text:gsub("redacted", "discord.gg/vaehz")
-Sections.Home.Container.ythead.Text = Sections.Home.Container.ythead.Text:gsub("redacted", "YouTube")
-Sections.Home.Container.execLabel.Text = "Executor: " .. getexec()
-Sections.Home.Container.versionLabel.Text = "Version: 0.33 BETA"
-
+pcall(function()
+    if Sections.Home and Sections.Home.Container then
+        local c = Sections.Home.Container
+        if c:FindFirstChild("bugsLabel") then c.bugsLabel.Text = c.bugsLabel.Text:gsub("redacted", "discord.gg/vaehz") end
+        if c:FindFirstChild("discan") then c.discan.Text = c.discan.Text:gsub("redacted", "discord.gg/vaehz") end
+        if c:FindFirstChild("ythead") then c.ythead.Text = c.ythead.Text:gsub("redacted", "YouTube") end
+        
+        local execName = "Unknown"
+        pcall(function()
+            local res = getexec()
+            if type(res) == "string" then execName = res end
+        end)
+        if c:FindFirstChild("execLabel") then c.execLabel.Text = "Executor: " .. tostring(execName) end
+        if c:FindFirstChild("versionLabel") then c.versionLabel.Text = "Version: 0.33 BETA" end
+    end
+end)
 
 local ok, gamePath = pcall(function()
     return game:HttpGet(getgitpath("games") .. tostring(game.PlaceId) .. ".lua")
 end)
-local gameList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "gameslist.json"))
-local creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "credits.json"))
-local elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
-if not ok or #gamePath == 0 or gamePath == "404: Not Found" then
-    local handledLocally = false
 
-    if getgenv().FileScripts then
-        if isfile("Dumb/"..tostring(game.PlaceId)..".lua") then
-            local gameModule = loadstring(readfile("Dumb/"..tostring(game.PlaceId)..".lua"))()
-            gameModule(Sections.Game.Container, httpservice:JSONDecode(readfile("Dumb/Config.json")))
-            handledLocally = true
+local gameList = {}
+pcall(function()
+    gameList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "gameslist.json"))
+end)
+
+local creditsList = {}
+pcall(function()
+    creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "credits.json"))
+end)
+
+local elements
+pcall(function()
+    elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
+end)
+
+if elements then
+    if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404") then
+        local handledLocally = false
+
+        if getgenv and getgenv().FileScripts then
+            if isfile and isfile("Dumb/"..tostring(game.PlaceId)..".lua") then
+                pcall(function()
+                    local gameModule = loadstring(readfile("Dumb/"..tostring(game.PlaceId)..".lua"))()
+                    local cfg = {}
+                    if isfile("Dumb/Config.json") then
+                        cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                    end
+                    gameModule(Sections.Game.Container, cfg)
+                    handledLocally = true
+                end)
+            end
+        end
+
+        if not handledLocally and Sections.Game and Sections.Game.Container then
+            elements:Unsupported(Sections.Game.Container, function()
+                if CurSection and CurSection.Container then
+                    updateTabVisuals(CurSection, false)
+                    CurSection.Container:TweenPosition(UDim2.new(0.5, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
+                end
+
+                updateTabVisuals(Sections.GamesList, true)
+                if Sections.GamesList and Sections.GamesList.Container then
+                    Sections.GamesList.Container:TweenPosition(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
+                    Sections.GamesList.Container.Visible = true
+                end
+
+                CurSection = Sections.GamesList
+            end)
+        end
+    else
+        pcall(function()
+            local gameModule = loadstring(gamePath)()
+            local cfg = {}
+            if isfile and isfile("Dumb/Config.json") then
+                cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            end
+            gameModule(Sections.Game.Container, cfg)
+        end)
+    end
+
+    if Sections.GamesList and Sections.GamesList.Container then
+        elements:Searchbar(Sections.GamesList.Container)
+        for _, g in ipairs(gameList) do
+            if g and g["game"] then
+                elements:addGame(Sections.GamesList.Container, g["game"], g["status"], function()
+                    exservice:LaunchExperience({placeId = g.id})
+                end)
+            end
         end
     end
 
-    if not handledLocally then
-        elements:Unsupported(Sections.Game.Container, function()
-            if CurSection then
-                updateTabVisuals(CurSection, false)
-                CurSection.Container:TweenPosition(UDim2.new(0.5, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
+    if Sections.Credits and Sections.Credits.Container then
+        for sect, c in pairs(creditsList) do
+            elements:CredHead(Sections.Credits.Container, sect)
+
+            for _, person in ipairs(c) do
+                elements:CredPerson(Sections.Credits.Container, person)
             end
+        end
+    end
 
-            updateTabVisuals(Sections.GamesList, true)
-            Sections.GamesList.Container:TweenPosition(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-            Sections.GamesList.Container.Visible = true
+    local dec1 = { settings = { disable_3d_rendering = false, auto_rejoin_on_kick = false } }
+    pcall(function()
+        if isfile and isfile("Dumb/Config.json") then
+            local parsed = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            if parsed and parsed.settings then dec1 = parsed end
+        end
+    end)
 
-            CurSection = Sections.GamesList
+    if Sections.Settings and Sections.Settings.Container then
+        elements:Toggle("Disable 3D Rendering", Sections.Settings.Container, dec1.settings.disable_3d_rendering, function(v)
+            pcall(function()
+                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                dec.settings.disable_3d_rendering = v
+                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
+                game:GetService("RunService"):Set3dRenderingEnabled(not v)
+            end)
+        end)
+
+        elements:Toggle("Auto Rejoin (when kicked)", Sections.Settings.Container, dec1.settings.auto_rejoin_on_kick, function(v)
+            pcall(function()
+                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                dec.settings.auto_rejoin_on_kick = v
+                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
+                local env = getgenv and getgenv() or _G
+                env.autorjjjj = v
+            end)
         end)
     end
-else
-    local gameModule = loadstring(gamePath)()
-    gameModule(Sections.Game.Container, httpservice:JSONDecode(readfile("Dumb/Config.json")))
-end
-elements:Searchbar(Sections.GamesList.Container)
-for _, g in ipairs(gameList) do
-    elements:addGame(Sections.GamesList.Container, g["game"], g["status"], function()
-        exservice:LaunchExperience({placeId = g.id})
-    end)
 end
 
-for sect, c in pairs(creditsList) do
-    elements:CredHead(Sections.Credits.Container, sect)
-
-    for _, person in ipairs(c) do
-        elements:CredPerson(Sections.Credits.Container, person)
-    end
-end
-
-local dec1 = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-
-elements:Toggle("Disable 3D Rendering", Sections.Settings.Container, dec1.settings.disable_3d_rendering, function(v)
-    local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-    dec.settings.disable_3d_rendering = v
-    writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
-    game:GetService("RunService"):Set3dRenderingEnabled(not v)
-end)
-
-elements:Toggle("Auto Rejoin (when kicked)", Sections.Settings.Container, dec1.settings.auto_rejoin_on_kick, function(v)
-    local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-    dec.settings.auto_rejoin_on_kick = v
-    writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
-    getgenv().autorjjjj = v
-end)
 
