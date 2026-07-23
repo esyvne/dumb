@@ -1,269 +1,353 @@
-local import = import or (getgenv and getgenv().import) or _G.import
 local getgitpath = getgitpath or (getgenv and getgenv().getgitpath) or _G.getgitpath
+local httpservice = game:GetService("HttpService")
 
-local elements = import("rbxassetid://113037265185555")
 local stuff = {}
 local gameList = {}
 pcall(function()
-    gameList = game:GetService("HttpService"):JSONDecode(game:HttpGet(getgitpath("src") .. "gameslist.json"))
+    gameList = httpservice:JSONDecode(game:HttpGet(getgitpath("src") .. "gameslist.json"))
 end)
 
-
--- Dark Testing UI Theme Palette
-local DarkTheme = {
-    MainBg = Color3.fromRGB(15, 16, 22),          -- Deep Obsidian (#0F1016)
-    TopbarBg = Color3.fromRGB(20, 22, 30),        -- Dark Topbar (#14161E)
-    TabListBg = Color3.fromRGB(18, 19, 26),       -- Dark Tab Sidebar (#12131A)
-    TabActiveBg = Color3.fromRGB(34, 37, 50),     -- Active Tab Highlight (#222532)
-    CardBg = Color3.fromRGB(24, 26, 36),          -- Dark Card / Button (#181A24)
-    CardHoverBg = Color3.fromRGB(34, 37, 50),     -- Card Hover State (#222532)
-    InputBg = Color3.fromRGB(18, 19, 26),         -- Dark Textbox Input (#12131A)
-    StrokeColor = Color3.fromRGB(45, 48, 64),     -- Testing UI Crisp Border (#2D3040)
-    Accent = Color3.fromRGB(99, 102, 241),        -- Indigo Testing Accent (#6366F1)
-    TextPrimary = Color3.fromRGB(240, 242, 248),   -- Primary Text (#F0F2F8)
-    TextSecondary = Color3.fromRGB(150, 155, 175), -- Secondary Text (#969BAA)
-    ToggleOn = Color3.fromRGB(46, 189, 89),       -- Testing Toggle Green (#2EBD59)
-    ToggleOff = Color3.fromRGB(40, 42, 56),       -- Toggle Off (#282A38)
-    ToggleKnob = Color3.fromRGB(245, 245, 250)     -- Toggle Knob White (#F5F5FA)
+local theme = {
+    bg = Color3.fromRGB(7, 8, 12),
+    panel = Color3.fromRGB(12, 14, 20),
+    panel2 = Color3.fromRGB(18, 21, 29),
+    border = Color3.fromRGB(40, 44, 56),
+    accent = Color3.fromRGB(126, 58, 242),
+    text = Color3.fromRGB(243, 245, 248),
+    muted = Color3.fromRGB(147, 153, 172),
+    green = Color3.fromRGB(46, 204, 113),
+    red = Color3.fromRGB(231, 76, 60)
 }
 
-local function applyElementTheme(inst)
-    if inst:IsA("GuiObject") then
-        if inst:IsA("Frame") or inst:IsA("ScrollingFrame") or inst:IsA("CanvasGroup") then
-            if inst.BackgroundTransparency < 0.95 then
-                inst.BackgroundColor3 = DarkTheme.CardBg
-            end
-        elseif inst:IsA("TextLabel") then
-            inst.TextColor3 = DarkTheme.TextPrimary
-        elseif inst:IsA("TextBox") then
-            inst.TextColor3 = DarkTheme.TextPrimary
-            inst.PlaceholderColor3 = DarkTheme.TextSecondary
-            if inst.BackgroundTransparency < 0.95 then
-                inst.BackgroundColor3 = DarkTheme.InputBg
-            end
-        elseif inst:IsA("TextButton") then
-            inst.TextColor3 = DarkTheme.TextPrimary
-            if inst.BackgroundTransparency < 0.95 then
-                inst.BackgroundColor3 = DarkTheme.CardBg
-            end
-        elseif inst:IsA("UIStroke") then
-            inst.Color = DarkTheme.StrokeColor
+local function make(instanceType, parent, props)
+    local inst = Instance.new(instanceType)
+    if parent then
+        inst.Parent = parent
+    end
+    if props then
+        for prop, value in pairs(props) do
+            inst[prop] = value
         end
     end
-    for _, child in ipairs(inst:GetChildren()) do
-        applyElementTheme(child)
+    return inst
+end
+
+local function makeCorner(inst, radius)
+    local corner = inst:FindFirstChildOfClass("UICorner")
+    if not corner then
+        corner = Instance.new("UICorner")
+        corner.Parent = inst
     end
+    corner.CornerRadius = UDim.new(0, radius)
+end
+
+local function makeStroke(inst, color, transparency, thickness)
+    local stroke = inst:FindFirstChildOfClass("UIStroke")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Parent = inst
+    end
+    stroke.Color = color or theme.border
+    stroke.Transparency = transparency or 0
+    stroke.Thickness = thickness or 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 end
 
 function stuff:Label(str, king)
-    local newLabel = elements.LabelElement:Clone()
-    if newLabel:IsA("TextLabel") then
-        newLabel.Text = str
-        newLabel.TextColor3 = DarkTheme.TextPrimary
-    elseif newLabel:FindFirstChild("TextLabel") then
-        newLabel.TextLabel.Text = str
-        newLabel.TextLabel.TextColor3 = DarkTheme.TextPrimary
-    end
-    applyElementTheme(newLabel)
-    newLabel.Parent = king
+    local lbl = make("TextLabel", king, {
+        Size = UDim2.new(1, 0, 0, 18),
+        BackgroundTransparency = 1,
+        Text = str,
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    return lbl
 end
 
 function stuff:Button(str, king, cb)
-    local newBtn = elements.ButtonElement:Clone()
-    if newBtn:FindFirstChild("TextLabel") then
-        newBtn.TextLabel.Text = str
-        newBtn.TextLabel.TextColor3 = DarkTheme.TextPrimary
-    elseif newBtn:IsA("TextButton") then
-        newBtn.Text = str
-        newBtn.TextColor3 = DarkTheme.TextPrimary
-    end
-    
-    if newBtn:IsA("GuiObject") and newBtn.BackgroundTransparency < 0.95 then
-        newBtn.BackgroundColor3 = DarkTheme.CardBg
-    end
-    applyElementTheme(newBtn)
+    local btn = make("TextButton", king, {
+        Size = UDim2.new(1, 0, 0, 34),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0,
+        Text = str,
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        AutoButtonColor = false
+    })
+    makeCorner(btn, 8)
+    makeStroke(btn, theme.border, 0.15, 1)
 
-    newBtn.MouseEnter:Connect(function()
-        if newBtn:IsA("GuiObject") and newBtn.BackgroundTransparency < 0.95 then
-            newBtn.BackgroundColor3 = DarkTheme.CardHoverBg
-        end
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = theme.panel
     end)
-    newBtn.MouseLeave:Connect(function()
-        if newBtn:IsA("GuiObject") and newBtn.BackgroundTransparency < 0.95 then
-            newBtn.BackgroundColor3 = DarkTheme.CardBg
-        end
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = theme.panel2
     end)
 
-    newBtn.Parent = king
-    newBtn.MouseButton1Click:Connect(cb)
+    if cb then
+        btn.MouseButton1Click:Connect(cb)
+    end
+    return btn
 end
 
 function stuff:Toggle(str, king, def, cb)
-    local newTog = elements.ToggleElement:Clone()
-    if newTog:FindFirstChild("TextLabel") then
-        newTog.TextLabel.Text = str
-        newTog.TextLabel.TextColor3 = DarkTheme.TextPrimary
-    end
-    if newTog:IsA("GuiObject") and newTog.BackgroundTransparency < 0.95 then
-        newTog.BackgroundColor3 = DarkTheme.CardBg
-    end
-    applyElementTheme(newTog)
+    local frame = make("Frame", king, {
+        Size = UDim2.new(1, 0, 0, 36),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0
+    })
+    makeCorner(frame, 8)
+    makeStroke(frame, theme.border, 0.15, 1)
 
-    local isTog = def
-    local function updateToggleVisual()
-        if isTog then
-            newTog.togglebg.BackgroundColor3 = DarkTheme.ToggleOn
-            newTog.togglebg.leftrightlol.AnchorPoint = Vector2.new(1, 0.5)
-            newTog.togglebg.leftrightlol.Position = UDim2.new(1, 0, 0.5, 0)
-        else
-            newTog.togglebg.BackgroundColor3 = DarkTheme.ToggleOff
-            newTog.togglebg.leftrightlol.AnchorPoint = Vector2.new(0, 0.5)
-            newTog.togglebg.leftrightlol.Position = UDim2.new(0, 0, 0.5, 0)
+    local label = make("TextLabel", frame, {
+        Size = UDim2.new(1, -70, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        Text = str,
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local toggleBg = make("Frame", frame, {
+        Size = UDim2.new(0, 44, 0, 20),
+        Position = UDim2.new(1, -54, 0.5, -10),
+        BackgroundColor3 = theme.border,
+        BorderSizePixel = 0
+    })
+    makeCorner(toggleBg, 10)
+
+    local knob = make("Frame", toggleBg, {
+        Size = UDim2.new(0, 16, 0, 16),
+        Position = UDim2.new(0, 2, 0.5, -8),
+        BackgroundColor3 = theme.text,
+        BorderSizePixel = 0
+    })
+    makeCorner(knob, 8)
+
+    local isOn = def or false
+    local function update()
+        toggleBg.BackgroundColor3 = isOn and theme.accent or theme.border
+        knob.Position = isOn and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+    end
+    update()
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isOn = not isOn
+            update()
+            if cb then
+                cb(isOn)
+            end
         end
-        if newTog.togglebg:FindFirstChild("leftrightlol") then
-            newTog.togglebg.leftrightlol.BackgroundColor3 = DarkTheme.ToggleKnob
-        end
-    end
-
-    updateToggleVisual()
-    task.defer(function() cb(isTog) end)
-
-    newTog.MouseButton1Click:Connect(function()
-        isTog = not isTog
-        updateToggleVisual()
-        cb(isTog)
     end)
 
-    newTog.Parent = king
+    return frame
 end
 
 function stuff:Textbox(str, king, def, cb)
-    local newTb = elements.TextboxElement:Clone()
-    if newTb:FindFirstChild("TextLabel") then
-        newTb.TextLabel.Text = str
-        newTb.TextLabel.TextColor3 = DarkTheme.TextPrimary
-    end
-    if newTb:IsA("GuiObject") and newTb.BackgroundTransparency < 0.95 then
-        newTb.BackgroundColor3 = DarkTheme.CardBg
-    end
-    applyElementTheme(newTb)
+    local frame = make("Frame", king, {
+        Size = UDim2.new(1, 0, 0, 60),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0
+    })
+    makeCorner(frame, 8)
+    makeStroke(frame, theme.border, 0.15, 1)
 
-    if newTb:FindFirstChild("tbbg") then
-        newTb.tbbg.BackgroundColor3 = DarkTheme.InputBg
-        if newTb.tbbg:FindFirstChild("Inp") then
-            newTb.tbbg.Inp.TextColor3 = DarkTheme.TextPrimary
-            newTb.tbbg.Inp.PlaceholderColor3 = DarkTheme.TextSecondary
-            if def then
-                newTb.tbbg.Inp.Text = tostring(def)
-            end
-            newTb.tbbg.Inp.FocusLost:Connect(function(ep)
-                cb(newTb.tbbg.Inp.Text)
-            end)
+    local label = make("TextLabel", frame, {
+        Size = UDim2.new(1, -16, 0, 18),
+        Position = UDim2.new(0, 8, 0, 8),
+        BackgroundTransparency = 1,
+        Text = str,
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local box = make("TextBox", frame, {
+        Size = UDim2.new(1, -16, 0, 24),
+        Position = UDim2.new(0, 8, 0, 28),
+        BackgroundColor3 = theme.panel,
+        BorderSizePixel = 0,
+        Text = tostring(def or ""),
+        TextColor3 = theme.text,
+        PlaceholderText = "Enter value",
+        PlaceholderColor3 = theme.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 12
+    })
+    makeCorner(box, 8)
+    makeStroke(box, theme.border, 0.15, 1)
+
+    box.FocusLost:Connect(function()
+        if cb then
+            cb(box.Text)
         end
-    end
+    end)
 
-    newTb.Parent = king
+    return frame
 end
 
 function stuff:Unsupported(king, cb)
-    local newUs = elements.unsupportElement:Clone()
-    applyElementTheme(newUs)
+    local card = make("Frame", king, {
+        Size = UDim2.new(1, 0, 0, 96),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0
+    })
+    makeCorner(card, 10)
+    makeStroke(card, theme.border, 0.15, 1)
 
-    if newUs:FindFirstChild("suggestbtn") then
-        newUs.suggestbtn.BackgroundColor3 = DarkTheme.CardHoverBg
-        newUs.suggestbtn.TextColor3 = DarkTheme.TextPrimary
-        newUs.suggestbtn.MouseButton1Click:Connect(function()
-            setclipboard("https://discord.gg/vaehz")
-            newUs.suggestbtn.Text = "Copied Link!"
-            wait(1)
-            newUs.suggestbtn.Text = "Suggest Game"
-        end)
-    end
+    make("TextLabel", card, {
+        Size = UDim2.new(1, -16, 0, 18),
+        Position = UDim2.new(0, 8, 0, 10),
+        BackgroundTransparency = 1,
+        Text = "Unsupported game",
+        TextColor3 = theme.text,
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
 
-    if newUs:FindFirstChild("glbtn") then
-        newUs.glbtn.BackgroundColor3 = DarkTheme.CardHoverBg
-        newUs.glbtn.TextColor3 = DarkTheme.TextPrimary
-        newUs.glbtn.MouseButton1Click:Connect(cb)
-    end
+    make("TextLabel", card, {
+        Size = UDim2.new(1, -16, 0, 24),
+        Position = UDim2.new(0, 8, 0, 34),
+        BackgroundTransparency = 1,
+        Text = "This experience does not have a dedicated script yet.",
+        TextColor3 = theme.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextWrapped = true
+    })
 
-    newUs.Parent = king
+    local btn = make("TextButton", card, {
+        Size = UDim2.new(0, 120, 0, 28),
+        Position = UDim2.new(0, 8, 0, 60),
+        BackgroundColor3 = theme.accent,
+        BorderSizePixel = 0,
+        Text = "Browse games",
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 12
+    })
+    makeCorner(btn, 8)
+    btn.MouseButton1Click:Connect(cb)
+
+    return card
 end
 
 function stuff:addGame(king, gname, gstate, cb)
-    local newGame = elements.GameElement:Clone()
-    applyElementTheme(newGame)
+    local btn = make("TextButton", king, {
+        Size = UDim2.new(1, 0, 0, 38),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0,
+        Text = "",
+        AutoButtonColor = false
+    })
+    makeCorner(btn, 8)
+    makeStroke(btn, theme.border, 0.15, 1)
 
-    if newGame:FindFirstChild("ButtonElement") then
-        newGame.ButtonElement.BackgroundColor3 = DarkTheme.CardBg
-        if newGame.ButtonElement:FindFirstChild("header") then
-            newGame.ButtonElement.header.Text = gname
-            newGame.ButtonElement.header.TextColor3 = DarkTheme.TextPrimary
-        end
+    local title = make("TextLabel", btn, {
+        Size = UDim2.new(1, -42, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        Text = gname,
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextWrapped = true
+    })
 
-        if gstate == "🟢" then
-            newGame.ButtonElement.status.ImageColor3 = Color3.fromRGB(46, 204, 113)
-        elseif gstate == "🟡" then
-            newGame.ButtonElement.status.ImageColor3 = Color3.fromRGB(241, 196, 15)
-        elseif gstate == "🔴" then
-            newGame.ButtonElement.status.ImageColor3 = Color3.fromRGB(231, 76, 60)
-        end
+    local status = make("Frame", btn, {
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new(1, -24, 0.5, -6),
+        BackgroundColor3 = gstate == "🟢" and theme.green or (gstate == "🔴" and theme.red or theme.border),
+        BorderSizePixel = 0
+    })
+    makeCorner(status, 6)
 
-        newGame.ButtonElement.MouseEnter:Connect(function()
-            newGame.ButtonElement.BackgroundColor3 = DarkTheme.CardHoverBg
-        end)
-        newGame.ButtonElement.MouseLeave:Connect(function()
-            newGame.ButtonElement.BackgroundColor3 = DarkTheme.CardBg
-        end)
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = theme.panel
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = theme.panel2
+    end)
+    btn.MouseButton1Click:Connect(cb)
 
-        newGame.ButtonElement.MouseButton1Click:Connect(cb)
-    end
-
-    newGame.Parent = king
+    return btn
 end
 
--- to finish
 function stuff:Searchbar(king)
-    local newSearch = elements.searchBar:Clone()
-    applyElementTheme(newSearch)
+    local frame = make("Frame", king, {
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0
+    })
+    makeCorner(frame, 8)
+    makeStroke(frame, theme.border, 0.15, 1)
 
-    if newSearch:FindFirstChild("searchbar") then
-        newSearch.searchbar.BackgroundColor3 = DarkTheme.InputBg
-        if newSearch.searchbar:FindFirstChild("Inp") then
-            newSearch.searchbar.Inp.TextColor3 = DarkTheme.TextPrimary
-            newSearch.searchbar.Inp.PlaceholderColor3 = DarkTheme.TextSecondary
-            newSearch.searchbar.Inp:GetPropertyChangedSignal("Text"):Connect(function()
-                for i, v in pairs(king:GetChildren()) do
-                    if v.Name == "GameElement" then
-                        v:Destroy()
-                    end
-                end
+    local box = make("TextBox", frame, {
+        Size = UDim2.new(1, -12, 1, -8),
+        Position = UDim2.new(0, 6, 0, 4),
+        BackgroundTransparency = 1,
+        Text = "",
+        PlaceholderText = "Search games",
+        PlaceholderColor3 = theme.muted,
+        TextColor3 = theme.text,
+        Font = Enum.Font.Gotham,
+        TextSize = 12
+    })
 
-                for i, v in pairs(gameList) do
-                    if v["game"]:lower():find(newSearch.searchbar.Inp.Text:lower()) then
-                        stuff:addGame(king, v["game"], v["status"], function()
-                            game:GetService("ExperienceService"):LaunchExperience({placeId = v["id"]})
-                        end)
-                    end
-                end
-            end)
+    box:GetPropertyChangedSignal("Text"):Connect(function()
+        for _, child in ipairs(king:GetChildren()) do
+            if child.Name == "GameButton" then
+                child:Destroy()
+            end
         end
-    end
 
-    newSearch.Parent = king
+        for _, v in ipairs(gameList) do
+            if v and v["game"] and v["game"]:lower():find(box.Text:lower()) then
+                local gameBtn = stuff:addGame(king, v["game"], v["status"], function()
+                    game:GetService("ExperienceService"):LaunchExperience({ placeId = v["id"] })
+                end)
+                gameBtn.Name = "GameButton"
+            end
+        end
+    end)
+
+    return frame
 end
 
 function stuff:CredHead(king, txt)
-    local newHead = elements.CreditHeader:Clone()
-    newHead.Text = "> " .. txt
-    newHead.TextColor3 = DarkTheme.Accent
-    newHead.Parent = king
+    local lbl = make("TextLabel", king, {
+        Size = UDim2.new(1, 0, 0, 20),
+        BackgroundTransparency = 1,
+        Text = "> " .. txt,
+        TextColor3 = theme.accent,
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    return lbl
 end
 
 function stuff:CredPerson(king, txt)
-    local newCred = elements.CreditPerson:Clone()
-    newCred.Text = "      + " .. txt
-    newCred.TextColor3 = DarkTheme.TextSecondary
-    newCred.Parent = king
+    local lbl = make("TextLabel", king, {
+        Size = UDim2.new(1, 0, 0, 16),
+        BackgroundTransparency = 1,
+        Text = "  + " .. txt,
+        TextColor3 = theme.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    return lbl
 end
 
 return stuff

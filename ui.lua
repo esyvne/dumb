@@ -6,59 +6,36 @@ local coregui = game:GetService("CoreGui")
 local userinputservice = game:GetService("UserInputService")
 local httpservice = game:GetService("HttpService")
 local exservice = game:GetService("ExperienceService")
-local tweenservice = game:GetService("TweenService")
-
-local import = import or (getgenv and getgenv().import) or _G.import
 local getgitpath = getgitpath or (getgenv and getgenv().getgitpath) or _G.getgitpath
 
-if not import then
-    warn("[Dumb UI Error]: 'import' function is nil!")
-    print("[Dumb UI Error]: 'import' function is nil!")
-    return
-end
-
-print("[Dumb UI]: Importing UI model...")
-local ui = import("rbxassetid://75281832304062")
-
-if not ui then
-    warn("[Dumb UI Error]: Failed to load UI asset model (rbxassetid://75281832304062)")
-    print("[Dumb UI Error]: Failed to load UI asset model (rbxassetid://75281832304062)")
-    return
-end
-
-print("[Dumb UI]: UI asset loaded successfully!")
-
-pcall(function()
-    if ui:IsA("ScreenGui") then
-        ui.Enabled = true
-    end
-end)
-
 local targetParent = (hui and hui()) or coregui
-ui.Parent = targetParent
-print("[Dumb UI]: UI parented to " .. tostring(targetParent.Name))
 
--- Dark Testing UI Theme Palette
-local DarkTheme = {
-    MainBg = Color3.fromRGB(15, 16, 22),
-    TopbarBg = Color3.fromRGB(20, 22, 30),
-    TabListBg = Color3.fromRGB(18, 19, 26),
-    TabActiveBg = Color3.fromRGB(34, 37, 50),
-    CardBg = Color3.fromRGB(24, 26, 36),
-    CardHoverBg = Color3.fromRGB(34, 37, 50),
-    InputBg = Color3.fromRGB(18, 19, 26),
-    StrokeColor = Color3.fromRGB(57, 61, 81),
-    Accent = Color3.fromRGB(99, 102, 241),
-    AccentSoft = Color3.fromRGB(129, 140, 248),
-    TextPrimary = Color3.fromRGB(240, 242, 248),
-    TextSecondary = Color3.fromRGB(150, 155, 175),
-    ToggleOn = Color3.fromRGB(46, 189, 89),
-    ToggleOff = Color3.fromRGB(40, 42, 56),
-    ToggleKnob = Color3.fromRGB(245, 245, 250)
+local theme = {
+    bg = Color3.fromRGB(7, 8, 12),
+    panel = Color3.fromRGB(12, 14, 20),
+    panel2 = Color3.fromRGB(18, 21, 29),
+    border = Color3.fromRGB(40, 44, 56),
+    accent = Color3.fromRGB(126, 58, 242),
+    text = Color3.fromRGB(243, 245, 248),
+    muted = Color3.fromRGB(147, 153, 172),
+    green = Color3.fromRGB(46, 204, 113),
+    red = Color3.fromRGB(231, 76, 60)
 }
 
-local function ensureCorner(inst, radius)
-    if not inst or not inst:IsA("GuiObject") then return end
+local function make(instanceType, parent, props)
+    local inst = Instance.new(instanceType)
+    if parent then
+        inst.Parent = parent
+    end
+    if props then
+        for prop, value in pairs(props) do
+            inst[prop] = value
+        end
+    end
+    return inst
+end
+
+local function makeCorner(inst, radius)
     local corner = inst:FindFirstChildOfClass("UICorner")
     if not corner then
         corner = Instance.new("UICorner")
@@ -67,429 +44,406 @@ local function ensureCorner(inst, radius)
     corner.CornerRadius = UDim.new(0, radius)
 end
 
-local function ensureStroke(inst, color, transparency, thickness)
-    if not inst or not inst:IsA("GuiObject") then return end
+local function makeStroke(inst, color, transparency, thickness)
     local stroke = inst:FindFirstChildOfClass("UIStroke")
     if not stroke then
         stroke = Instance.new("UIStroke")
         stroke.Parent = inst
     end
-    stroke.Color = color or DarkTheme.StrokeColor
+    stroke.Color = color or theme.border
     stroke.Transparency = transparency or 0
     stroke.Thickness = thickness or 1
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 end
 
-local function ensureGradient(inst, colorA, colorB)
-    if not inst or not inst:IsA("GuiObject") then return end
-    local gradient = inst:FindFirstChildOfClass("UIGradient")
-    if not gradient then
-        gradient = Instance.new("UIGradient")
-        gradient.Parent = inst
+print("[Dumb UI]: Creating custom black UI...")
+local ui = Instance.new("ScreenGui")
+ui.Name = "DumbSimpleUI"
+ui.ResetOnSpawn = false
+ui.IgnoreGuiInset = true
+ui.Parent = targetParent
+
+local main = make("Frame", ui, {
+    Name = "MainFrame",
+    Size = UDim2.new(0, 720, 0, 430),
+    Position = UDim2.new(0.5, -360, 0.5, -215),
+    BackgroundColor3 = theme.bg,
+    BorderSizePixel = 0,
+    ZIndex = 10
+})
+makeCorner(main, 16)
+makeStroke(main, theme.border, 0.1, 1)
+
+local topbar = make("Frame", main, {
+    Name = "TopBar",
+    Size = UDim2.new(1, -16, 0, 42),
+    Position = UDim2.new(0, 8, 0, 8),
+    BackgroundColor3 = theme.panel,
+    BorderSizePixel = 0
+})
+makeCorner(topbar, 12)
+makeStroke(topbar, theme.border, 0.2, 1)
+
+local title = make("TextLabel", topbar, {
+    Size = UDim2.new(0, 220, 1, 0),
+    Position = UDim2.new(0, 12, 0, 0),
+    BackgroundTransparency = 1,
+    Text = "Dumb Hub",
+    TextColor3 = theme.text,
+    Font = Enum.Font.GothamSemibold,
+    TextSize = 16,
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+local hideBtn = make("TextButton", topbar, {
+    Size = UDim2.new(0, 34, 0, 24),
+    Position = UDim2.new(1, -46, 0.5, -12),
+    BackgroundColor3 = theme.panel2,
+    BorderSizePixel = 0,
+    Text = "—",
+    TextColor3 = theme.muted,
+    Font = Enum.Font.GothamBold,
+    TextSize = 14
+})
+makeCorner(hideBtn, 8)
+makeStroke(hideBtn, theme.border, 0.1, 1)
+
+local toggleBtn = make("TextButton", ui, {
+    Name = "ToggleBtn",
+    Size = UDim2.new(0, 54, 0, 32),
+    Position = UDim2.new(0, 18, 0, 18),
+    BackgroundColor3 = theme.panel,
+    BorderSizePixel = 0,
+    Text = "☰",
+    TextColor3 = theme.text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    Visible = false,
+    ZIndex = 20
+})
+makeCorner(toggleBtn, 10)
+makeStroke(toggleBtn, theme.border, 0.15, 1)
+
+local sidebar = make("Frame", main, {
+    Name = "TabList",
+    Size = UDim2.new(0, 150, 1, -64),
+    Position = UDim2.new(0, 8, 0, 58),
+    BackgroundColor3 = theme.panel,
+    BorderSizePixel = 0
+})
+makeCorner(sidebar, 12)
+makeStroke(sidebar, theme.border, 0.2, 1)
+
+local content = make("Frame", main, {
+    Name = "ContentFrame",
+    Size = UDim2.new(1, -174, 1, -64),
+    Position = UDim2.new(0, 166, 0, 58),
+    BackgroundTransparency = 1
+})
+
+local sectionLayout = make("UIListLayout", sidebar, {
+    Padding = UDim.new(0, 8),
+    SortOrder = Enum.SortOrder.LayoutOrder
+})
+
+local sections = {}
+local curSection
+
+local function createSectionContainer(name)
+    local frame = make("Frame", content, {
+        Name = name .. "Frame",
+        Size = UDim2.new(1, -12, 1, -12),
+        Position = UDim2.new(0, 6, 0, 6),
+        BackgroundTransparency = 1,
+        Visible = false
+    })
+
+    local list = make("UIListLayout", frame, {
+        Padding = UDim.new(0, 8),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+
+    local pad = make("UIPadding", frame, {
+        PaddingTop = UDim.new(0, 8),
+        PaddingLeft = UDim.new(0, 8),
+        PaddingRight = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 8)
+    })
+
+    return frame
+end
+
+local function createTabButton(name, text)
+    local btn = make("TextButton", sidebar, {
+        Name = name .. "Tab",
+        Size = UDim2.new(1, -12, 0, 34),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0,
+        Text = text,
+        TextColor3 = theme.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        AutoButtonColor = false
+    })
+    makeCorner(btn, 8)
+    makeStroke(btn, theme.border, 0.15, 1)
+    return btn
+end
+
+local function setActiveSection(name)
+    for key, sect in pairs(sections) do
+        if sect.TabBtn then
+            sect.TabBtn.BackgroundColor3 = (key == name) and theme.accent or theme.panel2
+            sect.TabBtn.TextColor3 = (key == name) and theme.text or theme.muted
+        end
+        if sect.Container then
+            sect.Container.Visible = (key == name)
+        end
     end
-    gradient.Color = ColorSequence.new(colorA, colorB)
-    gradient.Transparency = NumberSequence.new(0)
+    curSection = sections[name]
 end
 
-local ToggleButton = ui:FindFirstChild("togglebtn") or ui:FindFirstChild("ToggleBtn")
-local MainFrame = ui:FindFirstChild("Frame") or ui:FindFirstChild("MainFrame")
-
-if not MainFrame then
-    warn("[Dumb UI Error]: Main frame not found in UI asset")
-    print("[Dumb UI Error]: Main frame not found in UI asset")
-    return
-end
-
-MainFrame.Visible = true
-if ToggleButton then
-    ToggleButton.Visible = false
-end
-
-local Topbar = MainFrame:FindFirstChild("TopBar") or MainFrame:FindFirstChild("Topbar")
-local SectionContainers = MainFrame:FindFirstChild("sectionContainers") or MainFrame:FindFirstChild("SectionContainers")
-local TabList = MainFrame:FindFirstChild("tablist") or MainFrame:FindFirstChild("TabList")
-
-local HideButton = Topbar and (Topbar:FindFirstChild("hidebtn") or Topbar:FindFirstChild("HideBtn"))
-
-local Sections = {
-    Home = {
-        TabBtn = TabList and TabList:FindFirstChild("HomeTab"),
-        Container = SectionContainers and SectionContainers:FindFirstChild("homeframe")
-    },
-
-    Game = {
-        TabBtn = TabList and TabList:FindFirstChild("GameTab"),
-        Container = SectionContainers and SectionContainers:FindFirstChild("gameFrame")
-    },
-
-    GamesList = {
-        TabBtn = TabList and TabList:FindFirstChild("GameslistTab"),
-        Container = SectionContainers and SectionContainers:FindFirstChild("gamelistFrame")
-    },
-
-    Settings = {
-        TabBtn = TabList and TabList:FindFirstChild("SettingsTab"),
-        Container = SectionContainers and SectionContainers:FindFirstChild("settingsFrame")
-    },
-
-    Credits = {
-        TabBtn = TabList and TabList:FindFirstChild("CreditsTab"),
-        Container = SectionContainers and SectionContainers:FindFirstChild("creditsFrame")
-    }
+sections.Home = {
+    TabBtn = createTabButton("Home", "Home"),
+    Container = createSectionContainer("home")
+}
+sections.Game = {
+    TabBtn = createTabButton("Game", "Game"),
+    Container = createSectionContainer("game")
+}
+sections.GamesList = {
+    TabBtn = createTabButton("GamesList", "Games"),
+    Container = createSectionContainer("games")
+}
+sections.Settings = {
+    TabBtn = createTabButton("Settings", "Settings"),
+    Container = createSectionContainer("settings")
+}
+sections.Credits = {
+    TabBtn = createTabButton("Credits", "Credits"),
+    Container = createSectionContainer("credits")
 }
 
-print("[Dumb UI]: Applying Dark Theme to UI elements...")
-
--- Apply Dark Theme to Main UI Framework
-local function themeInstance(inst)
-    if inst:IsA("GuiObject") then
-        if inst:IsA("Frame") or inst:IsA("ScrollingFrame") or inst:IsA("CanvasGroup") then
-            if inst.BackgroundTransparency < 0.95 then
-                local name = inst.Name:lower()
-                if name == "frame" and inst == MainFrame then
-                    inst.BackgroundColor3 = DarkTheme.MainBg
-                elseif name:find("topbar") or name:find("top_bar") then
-                    inst.BackgroundColor3 = DarkTheme.TopbarBg
-                elseif name:find("tablist") or name:find("sidebar") then
-                    inst.BackgroundColor3 = DarkTheme.TabListBg
-                elseif name:find("container") or name:find("frame") then
-                    inst.BackgroundColor3 = DarkTheme.MainBg
-                else
-                    inst.BackgroundColor3 = DarkTheme.CardBg
-                end
-            end
-            if inst:IsA("ScrollingFrame") then
-                inst.ScrollBarImageColor3 = DarkTheme.StrokeColor
-            end
-        elseif inst:IsA("TextLabel") then
-            inst.TextColor3 = DarkTheme.TextPrimary
-        elseif inst:IsA("TextBox") then
-            inst.TextColor3 = DarkTheme.TextPrimary
-            inst.PlaceholderColor3 = DarkTheme.TextSecondary
-            if inst.BackgroundTransparency < 0.95 then
-                inst.BackgroundColor3 = DarkTheme.InputBg
-            end
-        elseif inst:IsA("TextButton") then
-            inst.TextColor3 = DarkTheme.TextPrimary
-            if inst.BackgroundTransparency < 0.95 and inst ~= HideButton and not inst.Name:find("Tab") then
-                inst.BackgroundColor3 = DarkTheme.CardBg
-            end
-        elseif inst:IsA("UIStroke") then
-            inst.Color = DarkTheme.StrokeColor
-        end
-    end
-end
-
-themeInstance(ui)
-for _, desc in ipairs(ui:GetDescendants()) do
-    themeInstance(desc)
-end
-
-if MainFrame then
-    MainFrame.BackgroundColor3 = DarkTheme.MainBg
-    ensureCorner(MainFrame, 14)
-    ensureStroke(MainFrame, DarkTheme.StrokeColor, 0.08, 1)
-    ensureGradient(MainFrame, DarkTheme.MainBg, Color3.fromRGB(23, 24, 33))
-end
-
-if Topbar then
-    Topbar.BackgroundColor3 = DarkTheme.TopbarBg
-    ensureCorner(Topbar, 10)
-    ensureStroke(Topbar, DarkTheme.StrokeColor, 0.2, 1)
-    ensureGradient(Topbar, DarkTheme.TopbarBg, Color3.fromRGB(27, 29, 39))
-end
-
-if TabList then
-    TabList.BackgroundColor3 = DarkTheme.TabListBg
-    ensureCorner(TabList, 10)
-    ensureStroke(TabList, DarkTheme.StrokeColor, 0.2, 1)
-end
-
-if SectionContainers then
-    SectionContainers.BackgroundColor3 = DarkTheme.MainBg
-    ensureCorner(SectionContainers, 10)
-    for _, child in ipairs(SectionContainers:GetChildren()) do
-        if child:IsA("GuiObject") and child.BackgroundTransparency < 0.95 then
-            child.BackgroundColor3 = DarkTheme.MainBg
-            ensureCorner(child, 8)
-        end
-    end
-end
-
-if ToggleButton then
-    ToggleButton.BackgroundColor3 = DarkTheme.TopbarBg
-    ensureCorner(ToggleButton, 10)
-    ensureStroke(ToggleButton, DarkTheme.StrokeColor, 0.2, 1)
-    for _, child in ipairs(ToggleButton:GetChildren()) do
-        if child:IsA("TextLabel") or child:IsA("TextButton") then
-            child.TextColor3 = DarkTheme.TextPrimary
-        elseif child:IsA("UIStroke") then
-            child.Color = DarkTheme.StrokeColor
-        end
-    end
-end
-
-if HideButton then
-    HideButton.BackgroundColor3 = DarkTheme.CardBg
-    ensureCorner(HideButton, 8)
-    ensureStroke(HideButton, DarkTheme.StrokeColor, 0.2, 1)
-    if HideButton:IsA("TextButton") then
-        HideButton.TextColor3 = DarkTheme.TextSecondary
-    end
-    for _, child in ipairs(HideButton:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child.TextColor3 = DarkTheme.TextSecondary
-        end
-    end
-end
-
-local CurSection
-
-local function updateTabVisuals(sect, isActive)
-    if not sect or not sect.TabBtn then return end
-    local tab = sect.TabBtn
-    ensureCorner(tab, 8)
-    ensureStroke(tab, DarkTheme.StrokeColor, 0.2, 1)
-
-    if isActive then
-        tab.BackgroundColor3 = DarkTheme.Accent
-        tab.BackgroundTransparency = 0.1
-        if tab:IsA("TextButton") then
-            tab.TextColor3 = DarkTheme.TextPrimary
-        end
-        for _, child in ipairs(tab:GetChildren()) do
-            if child:IsA("TextLabel") then
-                child.TextColor3 = DarkTheme.TextPrimary
-            end
-        end
-    else
-        tab.BackgroundColor3 = DarkTheme.CardBg
-        tab.BackgroundTransparency = 0.25
-        if tab:IsA("TextButton") then
-            tab.TextColor3 = DarkTheme.TextSecondary
-        end
-        for _, child in ipairs(tab:GetChildren()) do
-            if child:IsA("TextLabel") then
-                child.TextColor3 = DarkTheme.TextSecondary
-            end
-        end
-    end
-end
-
-for _, sect in pairs(Sections) do
-    if sect.TabBtn then
-        updateTabVisuals(sect, false)
-
-        sect.TabBtn.MouseEnter:Connect(function()
-            if CurSection ~= sect then
-                sect.TabBtn.BackgroundColor3 = DarkTheme.CardHoverBg
-                sect.TabBtn.BackgroundTransparency = 0.15
-            end
-            for _, stroke in pairs(sect.TabBtn:GetChildren()) do
-                if stroke.Name == "InnerShadow" then
-                    stroke.Transparency = 0.95
-                end
-            end
-        end)
-
-        sect.TabBtn.MouseLeave:Connect(function()
-            if CurSection ~= sect then
-                updateTabVisuals(sect, false)
-            end
-            for _, stroke in pairs(sect.TabBtn:GetChildren()) do
-                if stroke.Name == "InnerShadow" then
-                    stroke.Transparency = 1
-                end
-            end
-        end)
-
-        sect.TabBtn.MouseButton1Click:Connect(function()
-            if CurSection == sect then return end
-
-            if CurSection and CurSection.Container then
-                updateTabVisuals(CurSection, false)
-                CurSection.Container:TweenPosition(UDim2.new(0.5, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-            end
-
-            updateTabVisuals(sect, true)
-            if sect.Container then
-                sect.Container:TweenPosition(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-                sect.Container.Visible = true
-            end
-
-            CurSection = sect
-        end)
-    end
-end
-
-if HideButton then
-    HideButton.MouseButton1Click:Connect(function()
-        MainFrame.Visible = false
-        if ToggleButton then ToggleButton.Visible = true end
+for name, sect in pairs(sections) do
+    sect.TabBtn.MouseButton1Click:Connect(function()
+        setActiveSection(name)
     end)
 end
 
-if ToggleButton then
-    ToggleButton.MouseButton1Click:Connect(function()
-        MainFrame.Visible = true
-        ToggleButton.Visible = false
-    end)
+setActiveSection("Home")
+
+local function addHeader(parent, text, size)
+    return make("TextLabel", parent, {
+        Size = UDim2.new(1, 0, 0, size or 18),
+        BackgroundTransparency = 1,
+        Text = text,
+        TextColor3 = theme.text,
+        Font = Enum.Font.GothamSemibold,
+        TextSize = size and (size - 2) or 14,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
 end
+
+local function addSubText(parent, text)
+    return make("TextLabel", parent, {
+        Size = UDim2.new(1, 0, 0, 18),
+        BackgroundTransparency = 1,
+        Text = text,
+        TextColor3 = theme.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+end
+
+local function addCard(parent, title, body)
+    local card = make("Frame", parent, {
+        Size = UDim2.new(1, 0, 0, 70),
+        BackgroundColor3 = theme.panel2,
+        BorderSizePixel = 0
+    })
+    makeCorner(card, 10)
+    makeStroke(card, theme.border, 0.15, 1)
+
+    make("TextLabel", card, {
+        Size = UDim2.new(1, -16, 0, 20),
+        Position = UDim2.new(0, 8, 0, 10),
+        BackgroundTransparency = 1,
+        Text = title,
+        TextColor3 = theme.text,
+        Font = Enum.Font.GothamSemibold,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    make("TextLabel", card, {
+        Size = UDim2.new(1, -16, 0, 26),
+        Position = UDim2.new(0, 8, 0, 32),
+        BackgroundTransparency = 1,
+        Text = body,
+        TextColor3 = theme.muted,
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextWrapped = true
+    })
+    return card
+end
+
+local function updateHomeContent()
+    local home = sections.Home.Container
+    addHeader(home, "Simple black UI")
+    addSubText(home, "Lightweight and clean for your scripts.")
+    addCard(home, "Executor", "Unknown")
+    addCard(home, "Version", "0.33 BETA")
+    addCard(home, "Discord", "discord.gg/vaehz")
+end
+
+updateHomeContent()
 
 local dragging = false
-local dragInput, mousePos, framePos
+local dragInput
+local startPos
+local startMouse
 
-MainFrame.InputBegan:Connect(function(input)
+local function beginDrag(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
-        mousePos = input.Position
-        framePos = MainFrame.Position
-
+        startPos = main.Position
+        startMouse = input.Position
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
             end
         end)
     end
-end)
+end
 
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+topbar.InputBegan:Connect(beginDrag)
+main.InputBegan:Connect(beginDrag)
+
+userinputservice.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        local delta = input.Position - startMouse
+        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    elseif input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
 
-userinputservice.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - mousePos
-        MainFrame.Position = UDim2.new(
-            framePos.X.Scale,
-            framePos.X.Offset + delta.X,
-            framePos.Y.Scale,
-            framePos.Y.Offset + delta.Y
-        )
-    end
+hideBtn.MouseButton1Click:Connect(function()
+    main.Visible = false
+    toggleBtn.Visible = true
 end)
 
-pcall(function()
-    if Sections.Home and Sections.Home.Container then
-        local c = Sections.Home.Container
-        if c:FindFirstChild("bugsLabel") then c.bugsLabel.Text = c.bugsLabel.Text:gsub("redacted", "discord.gg/vaehz") end
-        if c:FindFirstChild("discan") then c.discan.Text = c.discan.Text:gsub("redacted", "discord.gg/vaehz") end
-        if c:FindFirstChild("ythead") then c.ythead.Text = c.ythead.Text:gsub("redacted", "YouTube") end
-        
-        local execName = "Unknown"
-        pcall(function()
-            local res = getexec()
-            if type(res) == "string" then execName = res end
-        end)
-        if c:FindFirstChild("execLabel") then c.execLabel.Text = "Executor: " .. tostring(execName) end
-        if c:FindFirstChild("versionLabel") then c.versionLabel.Text = "Version: 0.33 BETA" end
-    end
+toggleBtn.MouseButton1Click:Connect(function()
+    main.Visible = true
+    toggleBtn.Visible = false
 end)
+
+local elements
+local elemOk, elemErr = pcall(function()
+    elements = loadstring(game:HttpGet(getgitpath("src") .. "elements.lua"))()
+end)
+
+if not elemOk or not elements then
+    warn("[Dumb UI Error]: Failed to load elements.lua - " .. tostring(elemErr))
+    print("[Dumb UI Error]: Failed to load elements.lua - " .. tostring(elemErr))
+    return
+end
+
+local function refreshHomeInfo()
+    local home = sections.Home.Container
+    local children = home:GetChildren()
+    for _, child in ipairs(children) do
+        if child:IsA("Frame") and child:FindFirstChildOfClass("TextLabel") then
+            local title = child:FindFirstChildOfClass("TextLabel")
+            local body = child:FindFirstChildOfClass("TextLabel")
+            if title and body then
+                if title.Text == "Executor" then
+                    body.Text = getexec()
+                elseif title.Text == "Version" then
+                    body.Text = "0.33 BETA"
+                elseif title.Text == "Discord" then
+                    body.Text = "discord.gg/vaehz"
+                end
+            end
+        end
+    end
+end
+
+refreshHomeInfo()
 
 print("[Dumb UI]: Checking game script for place " .. tostring(game.PlaceId) .. "...")
-
 local gameScriptUrl = getgitpath("games") .. tostring(game.PlaceId) .. ".lua"
-print("[Dumb UI]: Fetching game script from " .. gameScriptUrl)
-
 local ok, gamePath = pcall(function()
     return game:HttpGet(gameScriptUrl)
 end)
 
 local gameList = {}
 pcall(function()
-    gameList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "gameslist.json"))
+    gameList = httpservice:JSONDecode(game:HttpGet(getgitpath("src") .. "gameslist.json"))
 end)
 
 local creditsList = {}
 pcall(function()
-    creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "credits.json"))
+    creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath("src") .. "credits.json"))
 end)
-
-print("[Dumb UI]: Loading elements.lua...")
-local elements
-local elemOk, elemErr = pcall(function()
-    elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
-end)
-
-if not elemOk or not elements then
-    warn("[Dumb UI Error]: Failed to load elements.lua - " .. tostring(elemErr))
-    print("[Dumb UI Error]: Failed to load elements.lua - " .. tostring(elemErr))
-else
-    print("[Dumb UI]: elements.lua loaded successfully!")
-end
 
 if elements then
     if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404") then
-        print("[Dumb UI]: No specific game script found for place " .. tostring(game.PlaceId) .. " (Unsupported)")
         local handledLocally = false
 
         if getgenv and getgenv().FileScripts then
-            if isfile and isfile("Dumb/"..tostring(game.PlaceId)..".lua") then
+            if isfile and isfile("Dumb/" .. tostring(game.PlaceId) .. ".lua") then
                 pcall(function()
-                    local gameModule = loadstring(readfile("Dumb/"..tostring(game.PlaceId)..".lua"))()
+                    local gameModule = loadstring(readfile("Dumb/" .. tostring(game.PlaceId) .. ".lua"))()
                     local cfg = {}
                     if isfile("Dumb/Config.json") then
                         cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
                     end
-                    gameModule(Sections.Game.Container, cfg)
+                    gameModule(sections.Game.Container, cfg)
                     handledLocally = true
                 end)
             end
         end
 
-        if not handledLocally and Sections.Game and Sections.Game.Container then
-            elements:Unsupported(Sections.Game.Container, function()
-                if CurSection and CurSection.Container then
-                    updateTabVisuals(CurSection, false)
-                    CurSection.Container:TweenPosition(UDim2.new(0.5, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-                end
-
-                updateTabVisuals(Sections.GamesList, true)
-                if Sections.GamesList and Sections.GamesList.Container then
-                    Sections.GamesList.Container:TweenPosition(UDim2.new(0.5, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2)
-                    Sections.GamesList.Container.Visible = true
-                end
-
-                CurSection = Sections.GamesList
+        if not handledLocally and sections.Game and sections.Game.Container then
+            elements:Unsupported(sections.Game.Container, function()
+                setActiveSection("GamesList")
             end)
         end
     else
-        print("[Dumb UI]: Found game script for place " .. tostring(game.PlaceId) .. "! Executing...")
         local gOk, gErr = pcall(function()
             local gameModule = loadstring(gamePath)()
             local cfg = {}
             if isfile and isfile("Dumb/Config.json") then
                 cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
             end
-            gameModule(Sections.Game.Container, cfg)
+            gameModule(sections.Game.Container, cfg)
         end)
         if not gOk then
             warn("[Dumb UI Error]: Error executing game script: " .. tostring(gErr))
             print("[Dumb UI Error]: Error executing game script: " .. tostring(gErr))
-        else
-            print("[Dumb UI]: Game script executed successfully!")
         end
     end
 
-    if Sections.GamesList and Sections.GamesList.Container then
-        elements:Searchbar(Sections.GamesList.Container)
+    if sections.GamesList and sections.GamesList.Container then
+        elements:Searchbar(sections.GamesList.Container)
         for _, g in ipairs(gameList) do
             if g and g["game"] then
-                elements:addGame(Sections.GamesList.Container, g["game"], g["status"], function()
-                    exservice:LaunchExperience({placeId = g.id})
+                elements:addGame(sections.GamesList.Container, g["game"], g["status"], function()
+                    exservice:LaunchExperience({ placeId = g.id })
                 end)
             end
         end
     end
 
-    if Sections.Credits and Sections.Credits.Container then
+    if sections.Credits and sections.Credits.Container then
         for sect, c in pairs(creditsList) do
-            elements:CredHead(Sections.Credits.Container, sect)
-
+            elements:CredHead(sections.Credits.Container, sect)
             for _, person in ipairs(c) do
-                elements:CredPerson(Sections.Credits.Container, person)
+                elements:CredPerson(sections.Credits.Container, person)
             end
         end
     end
@@ -502,8 +456,8 @@ if elements then
         end
     end)
 
-    if Sections.Settings and Sections.Settings.Container then
-        elements:Toggle("Disable 3D Rendering", Sections.Settings.Container, dec1.settings.disable_3d_rendering, function(v)
+    if sections.Settings and sections.Settings.Container then
+        elements:Toggle("Disable 3D Rendering", sections.Settings.Container, dec1.settings.disable_3d_rendering, function(v)
             pcall(function()
                 local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
                 dec.settings.disable_3d_rendering = v
@@ -512,7 +466,7 @@ if elements then
             end)
         end)
 
-        elements:Toggle("Auto Rejoin (when kicked)", Sections.Settings.Container, dec1.settings.auto_rejoin_on_kick, function(v)
+        elements:Toggle("Auto Rejoin (when kicked)", sections.Settings.Container, dec1.settings.auto_rejoin_on_kick, function(v)
             pcall(function()
                 local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
                 dec.settings.auto_rejoin_on_kick = v
