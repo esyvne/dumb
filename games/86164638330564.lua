@@ -12,7 +12,7 @@ return function(section, data)
 
     elements:Toggle("Auto Kick Everyone", section, setdata.autokickeveryone, function(isOn)
         setconfig("autokickeveryone", isOn)
-        running = isOff
+        running = isOn
         if isOn then
             task.spawn(function()
                 local m = game:GetService("MarketplaceService")
