@@ -226,26 +226,34 @@ function stuff:Searchbar(king)
     local newSearch = elements.searchBar:Clone()
     applyElementTheme(newSearch)
 
+    local function refreshGames()
+        for i, v in pairs(king:GetChildren()) do
+            if v.Name == "GameElement" then
+                v:Destroy()
+            end
+        end
+
+        local query = ""
+        if newSearch:FindFirstChild("searchbar") and newSearch.searchbar:FindFirstChild("Inp") then
+            query = (newSearch.searchbar.Inp.Text or ""):lower()
+        end
+
+        for i, v in pairs(gameList) do
+            if not query or (v["game"] and v["game"]:lower():find(query, 1, true)) then
+                stuff:addGame(king, v["game"], v["status"], function()
+                    game:GetService("ExperienceService"):LaunchExperience({placeId = v["id"]})
+                end)
+            end
+        end
+    end
+
     if newSearch:FindFirstChild("searchbar") then
         newSearch.searchbar.BackgroundColor3 = DarkTheme.InputBg
         if newSearch.searchbar:FindFirstChild("Inp") then
             newSearch.searchbar.Inp.TextColor3 = DarkTheme.TextPrimary
             newSearch.searchbar.Inp.PlaceholderColor3 = DarkTheme.TextSecondary
-            newSearch.searchbar.Inp:GetPropertyChangedSignal("Text"):Connect(function()
-                for i, v in pairs(king:GetChildren()) do
-                    if v.Name == "GameElement" then
-                        v:Destroy()
-                    end
-                end
-
-                for i, v in pairs(gameList) do
-                    if v["game"]:lower():find(newSearch.searchbar.Inp.Text:lower()) then
-                        stuff:addGame(king, v["game"], v["status"], function()
-                            game:GetService("ExperienceService"):LaunchExperience({placeId = v["id"]})
-                        end)
-                    end
-                end
-            end)
+            newSearch.searchbar.Inp:GetPropertyChangedSignal("Text"):Connect(refreshGames)
+            task.defer(refreshGames)
         end
     end
 
