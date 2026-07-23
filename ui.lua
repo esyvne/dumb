@@ -12,12 +12,12 @@ local targetParent = (hui and hui()) or coregui
 
 local theme = {
     bg = Color3.fromRGB(0, 0, 0),
-    panel = Color3.fromRGB(8, 8, 8),
-    panel2 = Color3.fromRGB(12, 12, 12),
-    border = Color3.fromRGB(30, 30, 30),
+    panel = Color3.fromRGB(10, 10, 10),
+    panel2 = Color3.fromRGB(16, 16, 16),
+    border = Color3.fromRGB(40, 40, 40),
     accent = Color3.fromRGB(255, 255, 255),
     text = Color3.fromRGB(255, 255, 255),
-    muted = Color3.fromRGB(255, 255, 255),
+    muted = Color3.fromRGB(230, 230, 230),
     green = Color3.fromRGB(255, 255, 255),
     red = Color3.fromRGB(255, 255, 255)
 }
@@ -71,8 +71,8 @@ local main = make("Frame", ui, {
     BorderSizePixel = 0,
     ZIndex = 10
 })
-makeCorner(main, 0)
-makeStroke(main, theme.border, 1, 1)
+makeCorner(main, 4)
+makeStroke(main, theme.border, 0.2, 1)
 
 local topbar = make("Frame", main, {
     Name = "TopBar",
@@ -81,8 +81,8 @@ local topbar = make("Frame", main, {
     BackgroundColor3 = theme.panel,
     BorderSizePixel = 0
 })
-makeCorner(topbar, 0)
-makeStroke(topbar, theme.border, 1, 1)
+makeCorner(topbar, 4)
+makeStroke(topbar, theme.border, 0.2, 1)
 
 local title = make("TextLabel", topbar, {
     Size = UDim2.new(0, 220, 1, 0),
@@ -105,8 +105,8 @@ local hideBtn = make("TextButton", topbar, {
     Font = Enum.Font.GothamBold,
     TextSize = 14
 })
-makeCorner(hideBtn, 0)
-makeStroke(hideBtn, theme.border, 1, 1)
+makeCorner(hideBtn, 3)
+makeStroke(hideBtn, theme.border, 0.3, 1)
 
 local toggleBtn = make("TextButton", ui, {
     Name = "ToggleBtn",
@@ -121,8 +121,8 @@ local toggleBtn = make("TextButton", ui, {
     Visible = false,
     ZIndex = 20
 })
-makeCorner(toggleBtn, 0)
-makeStroke(toggleBtn, theme.border, 1, 1)
+makeCorner(toggleBtn, 3)
+makeStroke(toggleBtn, theme.border, 0.3, 1)
 
 local sidebar = make("Frame", main, {
     Name = "TabList",
@@ -131,8 +131,8 @@ local sidebar = make("Frame", main, {
     BackgroundColor3 = theme.panel,
     BorderSizePixel = 0
 })
-makeCorner(sidebar, 0)
-makeStroke(sidebar, theme.border, 1, 1)
+makeCorner(sidebar, 4)
+makeStroke(sidebar, theme.border, 0.2, 1)
 
 local content = make("Frame", main, {
     Name = "ContentFrame",
@@ -185,8 +185,8 @@ local function createTabButton(name, text)
         TextSize = 13,
         AutoButtonColor = false
     })
-    makeCorner(btn, 0)
-    makeStroke(btn, theme.border, 1, 1)
+    makeCorner(btn, 3)
+    makeStroke(btn, theme.border, 0.3, 1)
     return btn
 end
 
@@ -262,8 +262,8 @@ local function addCard(parent, title, body)
         BackgroundColor3 = theme.panel2,
         BorderSizePixel = 0
     })
-    makeCorner(card, 0)
-    makeStroke(card, theme.border, 1, 1)
+    makeCorner(card, 4)
+    makeStroke(card, theme.border, 0.25, 1)
 
     make("TextLabel", card, {
         Size = UDim2.new(1, -16, 0, 20),
