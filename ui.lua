@@ -11,15 +11,15 @@ local getgitpath = getgitpath or (getgenv and getgenv().getgitpath) or _G.getgit
 local targetParent = (hui and hui()) or coregui
 
 local theme = {
-    bg = Color3.fromRGB(7, 8, 12),
-    panel = Color3.fromRGB(12, 14, 20),
-    panel2 = Color3.fromRGB(18, 21, 29),
-    border = Color3.fromRGB(40, 44, 56),
-    accent = Color3.fromRGB(126, 58, 242),
-    text = Color3.fromRGB(243, 245, 248),
-    muted = Color3.fromRGB(147, 153, 172),
-    green = Color3.fromRGB(46, 204, 113),
-    red = Color3.fromRGB(231, 76, 60)
+    bg = Color3.fromRGB(0, 0, 0),
+    panel = Color3.fromRGB(8, 8, 8),
+    panel2 = Color3.fromRGB(12, 12, 12),
+    border = Color3.fromRGB(30, 30, 30),
+    accent = Color3.fromRGB(255, 255, 255),
+    text = Color3.fromRGB(255, 255, 255),
+    muted = Color3.fromRGB(255, 255, 255),
+    green = Color3.fromRGB(255, 255, 255),
+    red = Color3.fromRGB(255, 255, 255)
 }
 
 local function make(instanceType, parent, props)
@@ -71,8 +71,8 @@ local main = make("Frame", ui, {
     BorderSizePixel = 0,
     ZIndex = 10
 })
-makeCorner(main, 16)
-makeStroke(main, theme.border, 0.1, 1)
+makeCorner(main, 0)
+makeStroke(main, theme.border, 1, 1)
 
 local topbar = make("Frame", main, {
     Name = "TopBar",
@@ -81,8 +81,8 @@ local topbar = make("Frame", main, {
     BackgroundColor3 = theme.panel,
     BorderSizePixel = 0
 })
-makeCorner(topbar, 12)
-makeStroke(topbar, theme.border, 0.2, 1)
+makeCorner(topbar, 0)
+makeStroke(topbar, theme.border, 1, 1)
 
 local title = make("TextLabel", topbar, {
     Size = UDim2.new(0, 220, 1, 0),
@@ -105,8 +105,8 @@ local hideBtn = make("TextButton", topbar, {
     Font = Enum.Font.GothamBold,
     TextSize = 14
 })
-makeCorner(hideBtn, 8)
-makeStroke(hideBtn, theme.border, 0.1, 1)
+makeCorner(hideBtn, 0)
+makeStroke(hideBtn, theme.border, 1, 1)
 
 local toggleBtn = make("TextButton", ui, {
     Name = "ToggleBtn",
@@ -121,8 +121,8 @@ local toggleBtn = make("TextButton", ui, {
     Visible = false,
     ZIndex = 20
 })
-makeCorner(toggleBtn, 10)
-makeStroke(toggleBtn, theme.border, 0.15, 1)
+makeCorner(toggleBtn, 0)
+makeStroke(toggleBtn, theme.border, 1, 1)
 
 local sidebar = make("Frame", main, {
     Name = "TabList",
@@ -131,8 +131,8 @@ local sidebar = make("Frame", main, {
     BackgroundColor3 = theme.panel,
     BorderSizePixel = 0
 })
-makeCorner(sidebar, 12)
-makeStroke(sidebar, theme.border, 0.2, 1)
+makeCorner(sidebar, 0)
+makeStroke(sidebar, theme.border, 1, 1)
 
 local content = make("Frame", main, {
     Name = "ContentFrame",
@@ -185,15 +185,15 @@ local function createTabButton(name, text)
         TextSize = 13,
         AutoButtonColor = false
     })
-    makeCorner(btn, 8)
-    makeStroke(btn, theme.border, 0.15, 1)
+    makeCorner(btn, 0)
+    makeStroke(btn, theme.border, 1, 1)
     return btn
 end
 
 local function setActiveSection(name)
     for key, sect in pairs(sections) do
         if sect.TabBtn then
-            sect.TabBtn.BackgroundColor3 = (key == name) and theme.accent or theme.panel2
+            sect.TabBtn.BackgroundColor3 = (key == name) and theme.panel2 or theme.panel
             sect.TabBtn.TextColor3 = (key == name) and theme.text or theme.muted
         end
         if sect.Container then
@@ -262,8 +262,8 @@ local function addCard(parent, title, body)
         BackgroundColor3 = theme.panel2,
         BorderSizePixel = 0
     })
-    makeCorner(card, 10)
-    makeStroke(card, theme.border, 0.15, 1)
+    makeCorner(card, 0)
+    makeStroke(card, theme.border, 1, 1)
 
     make("TextLabel", card, {
         Size = UDim2.new(1, -16, 0, 20),
