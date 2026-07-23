@@ -439,6 +439,12 @@ if elements then
         end
     end)
 
+    local placeCfg = dec1[tostring(game.PlaceId)] or {}
+    local espEnabled = placeCfg.esp_enabled ~= false
+    local espColor = tostring(placeCfg.esp_color or "255,0,0")
+    local espFov = tostring(placeCfg.esp_fov or 350)
+    local espSkeleton = placeCfg.esp_skeleton ~= false
+
     if Sections.Settings and Sections.Settings.Container then
         elements:Toggle("Disable 3D Rendering", Sections.Settings.Container, dec1.settings.disable_3d_rendering, function(v)
             pcall(function()
@@ -456,6 +462,44 @@ if elements then
                 writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
                 local env = getgenv and getgenv() or _G
                 env.autorjjjj = v
+            end)
+        end)
+
+        elements:Toggle("ESP Enabled", Sections.Settings.Container, espEnabled, function(v)
+            pcall(function()
+                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
+                dec[tostring(game.PlaceId)].esp_enabled = v
+                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
+            end)
+        end)
+
+        elements:Textbox("ESP Color (R,G,B)", Sections.Settings.Container, espColor, function(v)
+            pcall(function()
+                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
+                dec[tostring(game.PlaceId)].esp_color = tostring(v or "255,0,0")
+                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
+            end)
+        end)
+
+        elements:Textbox("ESP FOV", Sections.Settings.Container, espFov, function(v)
+            pcall(function()
+                local num = tonumber(v)
+                if not num then num = 350 end
+                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
+                dec[tostring(game.PlaceId)].esp_fov = math.clamp(math.floor(num), 80, 800)
+                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
+            end)
+        end)
+
+        elements:Toggle("Show Skeleton", Sections.Settings.Container, espSkeleton, function(v)
+            pcall(function()
+                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
+                dec[tostring(game.PlaceId)].esp_skeleton = v
+                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
             end)
         end)
     end
