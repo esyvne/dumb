@@ -40,21 +40,56 @@ print("[Dumb UI]: UI parented to " .. tostring(targetParent.Name))
 
 -- Dark Testing UI Theme Palette
 local DarkTheme = {
-    MainBg = Color3.fromRGB(15, 16, 22),          -- Deep Obsidian (#0F1016)
-    TopbarBg = Color3.fromRGB(20, 22, 30),        -- Dark Topbar (#14161E)
-    TabListBg = Color3.fromRGB(18, 19, 26),       -- Dark Tab Sidebar (#12131A)
-    TabActiveBg = Color3.fromRGB(34, 37, 50),     -- Active Tab Highlight (#222532)
-    CardBg = Color3.fromRGB(24, 26, 36),          -- Dark Card / Button (#181A24)
-    CardHoverBg = Color3.fromRGB(34, 37, 50),     -- Card Hover State (#222532)
-    InputBg = Color3.fromRGB(18, 19, 26),         -- Dark Textbox Input (#12131A)
-    StrokeColor = Color3.fromRGB(45, 48, 64),     -- Testing UI Crisp Border (#2D3040)
-    Accent = Color3.fromRGB(99, 102, 241),        -- Indigo Testing Accent (#6366F1)
-    TextPrimary = Color3.fromRGB(240, 242, 248),   -- Primary Text (#F0F2F8)
-    TextSecondary = Color3.fromRGB(150, 155, 175), -- Secondary Text (#969BAA)
-    ToggleOn = Color3.fromRGB(46, 189, 89),       -- Testing Toggle Green (#2EBD59)
-    ToggleOff = Color3.fromRGB(40, 42, 56),       -- Toggle Off (#282A38)
-    ToggleKnob = Color3.fromRGB(245, 245, 250)     -- Toggle Knob White (#F5F5FA)
+    MainBg = Color3.fromRGB(15, 16, 22),
+    TopbarBg = Color3.fromRGB(20, 22, 30),
+    TabListBg = Color3.fromRGB(18, 19, 26),
+    TabActiveBg = Color3.fromRGB(34, 37, 50),
+    CardBg = Color3.fromRGB(24, 26, 36),
+    CardHoverBg = Color3.fromRGB(34, 37, 50),
+    InputBg = Color3.fromRGB(18, 19, 26),
+    StrokeColor = Color3.fromRGB(57, 61, 81),
+    Accent = Color3.fromRGB(99, 102, 241),
+    AccentSoft = Color3.fromRGB(129, 140, 248),
+    TextPrimary = Color3.fromRGB(240, 242, 248),
+    TextSecondary = Color3.fromRGB(150, 155, 175),
+    ToggleOn = Color3.fromRGB(46, 189, 89),
+    ToggleOff = Color3.fromRGB(40, 42, 56),
+    ToggleKnob = Color3.fromRGB(245, 245, 250)
 }
+
+local function ensureCorner(inst, radius)
+    if not inst or not inst:IsA("GuiObject") then return end
+    local corner = inst:FindFirstChildOfClass("UICorner")
+    if not corner then
+        corner = Instance.new("UICorner")
+        corner.Parent = inst
+    end
+    corner.CornerRadius = UDim.new(0, radius)
+end
+
+local function ensureStroke(inst, color, transparency, thickness)
+    if not inst or not inst:IsA("GuiObject") then return end
+    local stroke = inst:FindFirstChildOfClass("UIStroke")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Parent = inst
+    end
+    stroke.Color = color or DarkTheme.StrokeColor
+    stroke.Transparency = transparency or 0
+    stroke.Thickness = thickness or 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+end
+
+local function ensureGradient(inst, colorA, colorB)
+    if not inst or not inst:IsA("GuiObject") then return end
+    local gradient = inst:FindFirstChildOfClass("UIGradient")
+    if not gradient then
+        gradient = Instance.new("UIGradient")
+        gradient.Parent = inst
+    end
+    gradient.Color = ColorSequence.new(colorA, colorB)
+    gradient.Transparency = NumberSequence.new(0)
+end
 
 local ToggleButton = ui:FindFirstChild("togglebtn") or ui:FindFirstChild("ToggleBtn")
 local MainFrame = ui:FindFirstChild("Frame") or ui:FindFirstChild("MainFrame")
@@ -150,20 +185,41 @@ for _, desc in ipairs(ui:GetDescendants()) do
     themeInstance(desc)
 end
 
-MainFrame.BackgroundColor3 = DarkTheme.MainBg
-if Topbar then Topbar.BackgroundColor3 = DarkTheme.TopbarBg end
-if TabList then TabList.BackgroundColor3 = DarkTheme.TabListBg end
+if MainFrame then
+    MainFrame.BackgroundColor3 = DarkTheme.MainBg
+    ensureCorner(MainFrame, 14)
+    ensureStroke(MainFrame, DarkTheme.StrokeColor, 0.08, 1)
+    ensureGradient(MainFrame, DarkTheme.MainBg, Color3.fromRGB(23, 24, 33))
+end
+
+if Topbar then
+    Topbar.BackgroundColor3 = DarkTheme.TopbarBg
+    ensureCorner(Topbar, 10)
+    ensureStroke(Topbar, DarkTheme.StrokeColor, 0.2, 1)
+    ensureGradient(Topbar, DarkTheme.TopbarBg, Color3.fromRGB(27, 29, 39))
+end
+
+if TabList then
+    TabList.BackgroundColor3 = DarkTheme.TabListBg
+    ensureCorner(TabList, 10)
+    ensureStroke(TabList, DarkTheme.StrokeColor, 0.2, 1)
+end
+
 if SectionContainers then
     SectionContainers.BackgroundColor3 = DarkTheme.MainBg
+    ensureCorner(SectionContainers, 10)
     for _, child in ipairs(SectionContainers:GetChildren()) do
         if child:IsA("GuiObject") and child.BackgroundTransparency < 0.95 then
             child.BackgroundColor3 = DarkTheme.MainBg
+            ensureCorner(child, 8)
         end
     end
 end
 
 if ToggleButton then
     ToggleButton.BackgroundColor3 = DarkTheme.TopbarBg
+    ensureCorner(ToggleButton, 10)
+    ensureStroke(ToggleButton, DarkTheme.StrokeColor, 0.2, 1)
     for _, child in ipairs(ToggleButton:GetChildren()) do
         if child:IsA("TextLabel") or child:IsA("TextButton") then
             child.TextColor3 = DarkTheme.TextPrimary
@@ -175,6 +231,8 @@ end
 
 if HideButton then
     HideButton.BackgroundColor3 = DarkTheme.CardBg
+    ensureCorner(HideButton, 8)
+    ensureStroke(HideButton, DarkTheme.StrokeColor, 0.2, 1)
     if HideButton:IsA("TextButton") then
         HideButton.TextColor3 = DarkTheme.TextSecondary
     end
@@ -189,23 +247,28 @@ local CurSection
 
 local function updateTabVisuals(sect, isActive)
     if not sect or not sect.TabBtn then return end
+    local tab = sect.TabBtn
+    ensureCorner(tab, 8)
+    ensureStroke(tab, DarkTheme.StrokeColor, 0.2, 1)
+
     if isActive then
-        sect.TabBtn.BackgroundColor3 = DarkTheme.TabActiveBg
-        sect.TabBtn.BackgroundTransparency = 0
-        if sect.TabBtn:IsA("TextButton") then
-            sect.TabBtn.TextColor3 = DarkTheme.TextPrimary
+        tab.BackgroundColor3 = DarkTheme.Accent
+        tab.BackgroundTransparency = 0.1
+        if tab:IsA("TextButton") then
+            tab.TextColor3 = DarkTheme.TextPrimary
         end
-        for _, child in ipairs(sect.TabBtn:GetChildren()) do
+        for _, child in ipairs(tab:GetChildren()) do
             if child:IsA("TextLabel") then
                 child.TextColor3 = DarkTheme.TextPrimary
             end
         end
     else
-        sect.TabBtn.BackgroundTransparency = 1
-        if sect.TabBtn:IsA("TextButton") then
-            sect.TabBtn.TextColor3 = DarkTheme.TextSecondary
+        tab.BackgroundColor3 = DarkTheme.CardBg
+        tab.BackgroundTransparency = 0.25
+        if tab:IsA("TextButton") then
+            tab.TextColor3 = DarkTheme.TextSecondary
         end
-        for _, child in ipairs(sect.TabBtn:GetChildren()) do
+        for _, child in ipairs(tab:GetChildren()) do
             if child:IsA("TextLabel") then
                 child.TextColor3 = DarkTheme.TextSecondary
             end
@@ -219,8 +282,8 @@ for _, sect in pairs(Sections) do
 
         sect.TabBtn.MouseEnter:Connect(function()
             if CurSection ~= sect then
-                sect.TabBtn.BackgroundTransparency = 0.6
                 sect.TabBtn.BackgroundColor3 = DarkTheme.CardHoverBg
+                sect.TabBtn.BackgroundTransparency = 0.15
             end
             for _, stroke in pairs(sect.TabBtn:GetChildren()) do
                 if stroke.Name == "InnerShadow" then
