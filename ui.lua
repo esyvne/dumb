@@ -1,3 +1,5 @@
+print("[Dumb UI]: ui.lua execution started")
+
 local hui = gethui or get_hidden_gui
 local getexec = identifyexecutor or getexecutor or (function() return "Unknown" end)
 local coregui = game:GetService("CoreGui")
@@ -9,12 +11,22 @@ local tweenservice = game:GetService("TweenService")
 local import = import or (getgenv and getgenv().import) or _G.import
 local getgitpath = getgitpath or (getgenv and getgenv().getgitpath) or _G.getgitpath
 
+if not import then
+    warn("[Dumb UI Error]: 'import' function is nil!")
+    print("[Dumb UI Error]: 'import' function is nil!")
+    return
+end
+
+print("[Dumb UI]: Importing UI model...")
 local ui = import("rbxassetid://75281832304062")
 
 if not ui then
     warn("[Dumb UI Error]: Failed to load UI asset model (rbxassetid://75281832304062)")
+    print("[Dumb UI Error]: Failed to load UI asset model (rbxassetid://75281832304062)")
     return
 end
+
+print("[Dumb UI]: UI asset loaded successfully!")
 
 pcall(function()
     if ui:IsA("ScreenGui") then
@@ -22,7 +34,9 @@ pcall(function()
     end
 end)
 
-ui.Parent = hui and hui() or coregui
+local targetParent = (hui and hui()) or coregui
+ui.Parent = targetParent
+print("[Dumb UI]: UI parented to " .. tostring(targetParent.Name))
 
 -- Dark Testing UI Theme Palette
 local DarkTheme = {
@@ -47,6 +61,7 @@ local MainFrame = ui:FindFirstChild("Frame") or ui:FindFirstChild("MainFrame")
 
 if not MainFrame then
     warn("[Dumb UI Error]: Main frame not found in UI asset")
+    print("[Dumb UI Error]: Main frame not found in UI asset")
     return
 end
 
@@ -87,6 +102,8 @@ local Sections = {
         Container = SectionContainers and SectionContainers:FindFirstChild("creditsFrame")
     }
 }
+
+print("[Dumb UI]: Applying Dark Theme to UI elements...")
 
 -- Apply Dark Theme to Main UI Framework
 local function themeInstance(inst)
@@ -308,8 +325,13 @@ pcall(function()
     end
 end)
 
+print("[Dumb UI]: Checking game script for place " .. tostring(game.PlaceId) .. "...")
+
+local gameScriptUrl = getgitpath("games") .. tostring(game.PlaceId) .. ".lua"
+print("[Dumb UI]: Fetching game script from " .. gameScriptUrl)
+
 local ok, gamePath = pcall(function()
-    return game:HttpGet(getgitpath("games") .. tostring(game.PlaceId) .. ".lua")
+    return game:HttpGet(gameScriptUrl)
 end)
 
 local gameList = {}
@@ -322,13 +344,22 @@ pcall(function()
     creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath("src").. "credits.json"))
 end)
 
+print("[Dumb UI]: Loading elements.lua...")
 local elements
-pcall(function()
+local elemOk, elemErr = pcall(function()
     elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
 end)
 
+if not elemOk or not elements then
+    warn("[Dumb UI Error]: Failed to load elements.lua - " .. tostring(elemErr))
+    print("[Dumb UI Error]: Failed to load elements.lua - " .. tostring(elemErr))
+else
+    print("[Dumb UI]: elements.lua loaded successfully!")
+end
+
 if elements then
     if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404") then
+        print("[Dumb UI]: No specific game script found for place " .. tostring(game.PlaceId) .. " (Unsupported)")
         local handledLocally = false
 
         if getgenv and getgenv().FileScripts then
@@ -362,7 +393,8 @@ if elements then
             end)
         end
     else
-        pcall(function()
+        print("[Dumb UI]: Found game script for place " .. tostring(game.PlaceId) .. "! Executing...")
+        local gOk, gErr = pcall(function()
             local gameModule = loadstring(gamePath)()
             local cfg = {}
             if isfile and isfile("Dumb/Config.json") then
@@ -370,6 +402,12 @@ if elements then
             end
             gameModule(Sections.Game.Container, cfg)
         end)
+        if not gOk then
+            warn("[Dumb UI Error]: Error executing game script: " .. tostring(gErr))
+            print("[Dumb UI Error]: Error executing game script: " .. tostring(gErr))
+        else
+            print("[Dumb UI]: Game script executed successfully!")
+        end
     end
 
     if Sections.GamesList and Sections.GamesList.Container then
@@ -422,5 +460,7 @@ if elements then
         end)
     end
 end
+
+print("[Dumb UI]: UI loaded and visible successfully!")
 
 
