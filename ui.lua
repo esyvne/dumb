@@ -464,44 +464,6 @@ if elements then
                 env.autorjjjj = v
             end)
         end)
-
-        elements:Toggle("ESP Enabled", Sections.Settings.Container, espEnabled, function(v)
-            pcall(function()
-                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
-                dec[tostring(game.PlaceId)].esp_enabled = v
-                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
-            end)
-        end)
-
-        elements:Textbox("ESP Color (R,G,B)", Sections.Settings.Container, espColor, function(v)
-            pcall(function()
-                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
-                dec[tostring(game.PlaceId)].esp_color = tostring(v or "255,0,0")
-                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
-            end)
-        end)
-
-        elements:Textbox("ESP FOV", Sections.Settings.Container, espFov, function(v)
-            pcall(function()
-                local num = tonumber(v)
-                if not num then num = 350 end
-                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
-                dec[tostring(game.PlaceId)].esp_fov = math.clamp(math.floor(num), 80, 800)
-                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
-            end)
-        end)
-
-        elements:Toggle("Show Skeleton", Sections.Settings.Container, espSkeleton, function(v)
-            pcall(function()
-                local dec = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-                dec[tostring(game.PlaceId)] = dec[tostring(game.PlaceId)] or {}
-                dec[tostring(game.PlaceId)].esp_skeleton = v
-                writefile("Dumb/Config.json", httpservice:JSONEncode(dec))
-            end)
-        end)
     end
 end
 

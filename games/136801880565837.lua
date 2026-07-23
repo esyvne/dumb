@@ -1,11 +1,46 @@
 -- Flick script
 
 return function(section, data)
+    local elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
+    local HttpService = game:GetService("HttpService")
+
+    local setdata = data[tostring(game.PlaceId)] or {}
+    setdata.esp_enabled = setdata.esp_enabled ~= false
+    setdata.esp_color = setdata.esp_color or "255,0,0"
+    setdata.esp_fov = setdata.esp_fov or 350
+    setdata.esp_skeleton = setdata.esp_skeleton ~= false
+    data[tostring(game.PlaceId)] = setdata
+    writefile("Dumb/Config.json", HttpService:JSONEncode(data))
+
+    local function save()
+        writefile("Dumb/Config.json", HttpService:JSONEncode(data))
+    end
+
+    if section then
+        elements:Label("ESP Settings", section)
+        elements:Toggle("ESP Enabled", section, setdata.esp_enabled, function(v)
+            setdata.esp_enabled = v
+            save()
+        end)
+        elements:Textbox("ESP Color (R,G,B)", section, tostring(setdata.esp_color or "255,0,0"), function(v)
+            setdata.esp_color = tostring(v or "255,0,0")
+            save()
+        end)
+        elements:Textbox("ESP FOV", section, tostring(setdata.esp_fov or 350), function(v)
+            local num = tonumber(v) or 350
+            setdata.esp_fov = math.clamp(math.floor(num), 80, 800)
+            save()
+        end)
+        elements:Toggle("Show Skeleton", section, setdata.esp_skeleton, function(v)
+            setdata.esp_skeleton = v
+            save()
+        end)
+    end
+
     task.spawn(function()
         local Players = game:GetService("Players")
         local RunService = game:GetService("RunService")
         local UserInputService = game:GetService("UserInputService")
-        local HttpService = game:GetService("HttpService")
         local LocalPlayer = Players.LocalPlayer
         local Camera = workspace.CurrentCamera
         local Mouse = LocalPlayer:GetMouse()
