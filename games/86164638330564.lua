@@ -4,14 +4,14 @@ return function(section, data)
     local elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
 
     local setdata = data[tostring(game.PlaceId)] or {}
-    setdata.autokickeveryone = setdata.autokickeveryone or false
+    setdata.autoPrompt = setdata.autoPrompt or false
     data[tostring(game.PlaceId)] = setdata
     writefile("Dumb/Config.json", game:GetService("HttpService"):JSONEncode(data))
 
     local running = false
 
-    elements:Toggle("Auto Kick Everyone", section, setdata.autokickeveryone, function(isOn)
-        setconfig("autokickeveryone", isOn)
+    elements:Toggle("Auto Prompt Purchase", section, setdata.autoPrompt, function(isOn)
+        setconfig("autoPrompt", isOn)
         running = isOn
         if isOn then
             task.spawn(function()
@@ -22,7 +22,7 @@ return function(section, data)
                     pcall(function()
                         m:SignalPromptProductPurchaseFinished(p.LocalPlayer.UserId, id, true)
                     end)
-                    task.wait(0.1)
+                    task.wait(1)
                 end
             end)
         end
