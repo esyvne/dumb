@@ -626,7 +626,7 @@ if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404"
         mkLabel(gameC, "Game not supported.", T.TextMuted)
         mkDivider(gameC)
         mkButton(gameC, "Suggest on Discord", function()
-            pcall(setclipboard, "https://discord.gg/vaehz")
+            pcall(setclipboard, "discord.gg/FQ9ZscTKfT")
         end)
     end
 else
