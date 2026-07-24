@@ -40,10 +40,11 @@ Main.Name = "Main"
 Main.Parent = ScreenGui
 Main.AnchorPoint = Vector2.new(0.5, 0.5)
 Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-Main.Size = UDim2.new(0, 540, 0, 330)
+Main.Size = UDim2.new(0, 540, 0, 0)
 Main.BackgroundColor3 = T.Bg
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
+Main.Visible = false
 
 do
     local c = Instance.new("UICorner")
@@ -725,3 +726,46 @@ if next(creditsList) then
 else
     mkLabel(creditsC, "No credits.", T.TextMuted)
 end
+
+-- ── Loading Animation ──────────────────────────────────────────────────────────
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Size = UDim2.new(0, 120, 0, 120)
+LoadingFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadingFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadingFrame.BackgroundColor3 = T.Bg
+LoadingFrame.BackgroundTransparency = 1
+LoadingFrame.BorderSizePixel = 0
+LoadingFrame.Parent = ScreenGui
+
+local cLoad = Instance.new("UICorner", LoadingFrame)
+cLoad.CornerRadius = UDim.new(0, 8)
+
+local LoadLogo = Instance.new("ImageLabel")
+LoadLogo.Size = UDim2.new(0, 60, 0, 60)
+LoadLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadLogo.BackgroundTransparency = 1
+LoadLogo.Image = Logo.Image
+LoadLogo.ImageTransparency = 1
+LoadLogo.Parent = LoadingFrame
+
+task.spawn(function()
+    TweenService:Create(LoadingFrame, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(LoadLogo, TweenInfo.new(0.4), {ImageTransparency = 0}):Play()
+    task.wait(0.4)
+    
+    local pulse = TweenService:Create(LoadLogo, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Size = UDim2.new(0, 75, 0, 75)})
+    pulse:Play()
+    
+    task.wait(1.5)
+    pulse:Cancel()
+    
+    TweenService:Create(LoadingFrame, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(LoadLogo, TweenInfo.new(0.4), {ImageTransparency = 1, Size = UDim2.new(0, 45, 0, 45)}):Play()
+    task.wait(0.4)
+    LoadingFrame:Destroy()
+    
+    Main.Visible = true
+    Main.Size = UDim2.new(0, 540, 0, 0)
+    TweenService:Create(Main, TweenInfo.new(0.7, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 540, 0, 330)}):Play()
+end)
