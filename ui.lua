@@ -700,6 +700,14 @@ mkToggle(settingsC, "Auto Rejoin on Kick", cfg1.settings.auto_rejoin_on_kick, fu
     end)
 end)
 
+mkDivider(settingsC)
+mkButton(settingsC, "Update Script", function()
+    pcall(function()
+        ScreenGui:Destroy()
+        loadstring(game:HttpGet(getgitpath() .. "init.lua"))()
+    end)
+end)
+
 -- ── Credits ────────────────────────────────────────────────────────────────────
 local creditsList = {}
 pcall(function()
