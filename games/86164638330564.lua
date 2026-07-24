@@ -1,8 +1,6 @@
 -- Would You Rather Gear Tower X Script
 
-return function(section, data)
-    local elements = loadstring(game:HttpGet(getgitpath("src").."elements.lua"))()
-
+return function(section, data, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
     local setdata = data[tostring(game.PlaceId)] or {}
     setdata.autokickeveryone = setdata.autokickeveryone or false
     data[tostring(game.PlaceId)] = setdata
@@ -10,7 +8,7 @@ return function(section, data)
 
     local running = false
 
-    elements:Toggle("Auto Kick Everyone", section, setdata.autokickeveryone, function(isOn)
+    mkToggle(section, "Auto Kick Everyone", setdata.autokickeveryone, function(isOn)
         setconfig("autokickeveryone", isOn)
         running = isOn
         if isOn then

@@ -411,6 +411,61 @@ local function mkToggle(parent, text, default, cb)
     return row
 end
 
+local function mkTextbox(parent, text, default, cb)
+    local row = Instance.new("Frame")
+    row.Parent = parent
+    row.Size = UDim2.new(1, 0, 0, 28)
+    row.BackgroundColor3 = T.Card
+    row.BorderSizePixel = 0
+    do
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 4)
+        c.Parent = row
+    end
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = row
+    lbl.Position = UDim2.new(0, 10, 0, 0)
+    lbl.Size = UDim2.new(0.5, -10, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = T.TextPri
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local inputBg = Instance.new("Frame")
+    inputBg.Parent = row
+    inputBg.AnchorPoint = Vector2.new(1, 0.5)
+    inputBg.Position = UDim2.new(1, -6, 0.5, 0)
+    inputBg.Size = UDim2.new(0.5, -10, 0, 20)
+    inputBg.BackgroundColor3 = T.Sidebar
+    inputBg.BorderSizePixel = 0
+    do
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 4)
+        c.Parent = inputBg
+    end
+
+    local box = Instance.new("TextBox")
+    box.Parent = inputBg
+    box.Size = UDim2.new(1, -12, 1, 0)
+    box.Position = UDim2.new(0, 6, 0, 0)
+    box.BackgroundTransparency = 1
+    box.Text = tostring(default or "")
+    box.TextColor3 = T.TextPri
+    box.PlaceholderColor3 = T.TextMuted
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 11
+    box.TextXAlignment = Enum.TextXAlignment.Left
+    box.ClearTextOnFocus = false
+
+    box.FocusLost:Connect(function()
+        pcall(cb, box.Text)
+    end)
+    return row
+end
+
 -- ── Build Tabs ─────────────────────────────────────────────────────────────────
 local homeC,     homeAct     = makeTab("Home",     1)
 local gameC,     gameAct     = makeTab("Game",     2)
@@ -448,7 +503,7 @@ if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404"
                     cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
                 end
                 local mod = loadstring(readfile("Dumb/" .. tostring(game.PlaceId) .. ".lua"))()
-                mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider)
+                mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
                 localDone = true
             end)
         end
@@ -467,7 +522,7 @@ else
             cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
         end
         local mod = loadstring(gamePath)()
-        mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider)
+        mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
     end)
     if not gOk then
         warn("[Dumb UI]: " .. tostring(gErr))
