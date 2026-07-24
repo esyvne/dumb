@@ -66,7 +66,7 @@ Logo.Parent = Topbar
 Logo.Position = UDim2.new(0, 10, 0.5, -9)
 Logo.Size = UDim2.new(0, 18, 0, 18)
 Logo.BackgroundTransparency = 1
-Logo.Image = "rbxassetid://139415606656378"
+Logo.Image = "rbxthumb://type=Asset&id=139415606656378&w=150&h=150"
 Logo.ScaleType = Enum.ScaleType.Fit
 
 local TitleLbl = Instance.new("TextLabel")
@@ -505,7 +505,7 @@ end
 -- ── Build Tabs ─────────────────────────────────────────────────────────────────
 local homeC,     homeAct     = makeTab("Home",     1)
 local gameC,     gameAct     = makeTab("Game",     2)
-local gamesC,    gamesAct    = makeTab("Games",    3)
+local gamesC,    gamesAct    = makeTab("Script",    3)
 local settingsC, settingsAct = makeTab("Settings", 4)
 local creditsC,  creditsAct  = makeTab("Credits",  5)
 
