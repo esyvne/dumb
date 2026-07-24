@@ -1,5 +1,3 @@
-print("[Dumb UI]: ui.lua started (Minimalist)")
-
 local UserInputService = game:GetService("UserInputService")
 local TweenService     = game:GetService("TweenService")
 local httpservice      = game:GetService("HttpService")
@@ -630,5 +628,3 @@ if next(creditsList) then
 else
     mkLabel(creditsC, "No credits.", T.TextMuted)
 end
-
-print("[Dumb UI]: Minimalist UI loaded!")

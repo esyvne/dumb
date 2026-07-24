@@ -1,7 +1,7 @@
-print("[Dumb UI]: Initializing loader...")
+print("[Dumb]: Loading...")
 
 if not game:IsLoaded() then
-    print("[Dumb UI]: Waiting for game to load...")
+    print("[Dumb]: Waiting for game to load...")
     pcall(function() game.Loaded:Wait() end)
 end
 
@@ -29,14 +29,12 @@ local function getgitpath(where)
 end
 
 local function import(id)
-    print("[Dumb UI]: Importing asset -> " .. tostring(id))
     local getobj = getobjects or (game and game.GetObjects)
     if getobj then
         local ok, res = pcall(function()
             return getobj(game, id)[1]
         end)
         if ok and res then
-            print("[Dumb UI]: Successfully imported " .. tostring(id))
             return res
         end
     end
@@ -44,10 +42,8 @@ local function import(id)
         return game:GetObjects(id)[1]
     end)
     if ok2 and res2 then
-        print("[Dumb UI]: Successfully imported (fallback) " .. tostring(id))
         return res2
     end
-    warn("[Dumb UI]: Failed to import asset " .. tostring(id))
     return nil
 end
 
@@ -88,8 +84,6 @@ pcall(function()
     game:GetService("GuiService"):SetGameplayPausedNotificationEnabled(false)
 end)
 
-print("[Dumb UI]: Fetching ui.lua from " .. getgitpath() .. "ui.lua")
-
 local success, err = pcall(function()
     local uiCode = game:HttpGet(getgitpath() .. "ui.lua")
     local func, loadErr = loadstring(uiCode)
@@ -99,12 +93,7 @@ local success, err = pcall(function()
     func()
 end)
 
-if not success then
-    warn("[Dumb UI Error]: Failed to load ui.lua - " .. tostring(err))
-    print("[Dumb UI Error]: Failed to load ui.lua - " .. tostring(err))
-else
-    print("[Dumb UI]: ui.lua loaded successfully!")
-end
+if not success then end
 
 if queue_on_teleport then
     pcall(function()
