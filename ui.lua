@@ -28,8 +28,18 @@ local T = {
 -- ── ScreenGui ──────────────────────────────────────────────────────────────────
 local hui = (gethui and gethui()) or game:GetService("CoreGui")
 
+local oldGui = hui:FindFirstChild("KT73GQTQBQBWZZH8CGGFAUQEGOW3NC16MBOZ8KNNOQVQJCVOJJ1LYAT8WT9TH2SL02XHENWPFL8RP9QKFGDYVLJBHVOG36NB04WKNZL4QZZ4APKXP9ORPF0UV6V")
+
+-- On crée d'abord le nouveau GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DumbUI"
+ScreenGui.Name = "KT73GQTQBQBWZZH8CGGFAUQEGOW3NC16MBOZ8KNNOQVQJCVOJJ1LYAT8WT9TH2SL02XHENWPFL8RP9QKFGDYVLJBHVOG36NB04WKNZL4QZZ4APKXP9ORPF0UV6V"
+
+if oldGui then
+    -- Le GUI existait déjà, on détruit donc le nouveau GUI que l'on vient d'essayer de charger
+    ScreenGui:Destroy()
+    return
+end
+
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = hui
@@ -589,142 +599,144 @@ local creditsC,  creditsAct  = makeTab("Credits",  5)
 
 homeAct()
 
--- ── Home ───────────────────────────────────────────────────────────────────────
-local execName = "Unknown"
-pcall(function()
-    local r = getexec()
-    if type(r) == "string" then execName = r end
-end)
+local function LoadScripts()
+    -- ── Home ───────────────────────────────────────────────────────────────────────
+    local execName = "Unknown"
+    pcall(function()
+        local r = getexec()
+        if type(r) == "string" then execName = r end
+    end)
 
-mkLabel(homeC, "v0.18 PREVIEW  ·  " .. execName, T.TextMuted)
-mkDivider(homeC)
-mkButton(homeC, "Copy Discord  ( discord.gg/FQ9ZscTKfT )", function()
-    pcall(setclipboard, "discord.gg/FQ9ZscTKfT")
-end)
+    mkLabel(homeC, "v0.18 PREVIEW  ·  " .. execName, T.TextMuted)
+    mkDivider(homeC)
+    mkButton(homeC, "Copy Discord  ( discord.gg/FQ9ZscTKfT )", function()
+        pcall(setclipboard, "discord.gg/FQ9ZscTKfT")
+    end)
 
--- ── Game ───────────────────────────────────────────────────────────────────────
-local ok, gamePath = pcall(function()
-    return game:HttpGet(getgitpath("games") .. tostring(game.PlaceId) .. ".lua")
-end)
+    -- ── Game ───────────────────────────────────────────────────────────────────────
+    local ok, gamePath = pcall(function()
+        return game:HttpGet(getgitpath("games") .. tostring(game.PlaceId) .. ".lua")
+    end)
 
-if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404") then
-    local localDone = false
-    if getgenv and getgenv().FileScripts then
-        if isfile and isfile("Dumb/" .. tostring(game.PlaceId) .. ".lua") then
-            pcall(function()
-                local cfg = {}
-                if isfile and isfile("Dumb/Config.json") then
-                    cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-                end
-                local mod = loadstring(readfile("Dumb/" .. tostring(game.PlaceId) .. ".lua"))()
-                mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
-                localDone = true
+    if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404") then
+        local localDone = false
+        if getgenv and getgenv().FileScripts then
+            if isfile and isfile("Dumb/" .. tostring(game.PlaceId) .. ".lua") then
+                pcall(function()
+                    local cfg = {}
+                    if isfile and isfile("Dumb/Config.json") then
+                        cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+                    end
+                    local mod = loadstring(readfile("Dumb/" .. tostring(game.PlaceId) .. ".lua"))()
+                    mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
+                    localDone = true
+                end)
+            end
+        end
+        if not localDone then
+            mkLabel(gameC, "Game not supported.", T.TextMuted)
+            mkDivider(gameC)
+            mkButton(gameC, "Suggest on Discord", function()
+                pcall(setclipboard, "discord.gg/FQ9ZscTKfT")
             end)
         end
-    end
-    if not localDone then
-        mkLabel(gameC, "Game not supported.", T.TextMuted)
-        mkDivider(gameC)
-        mkButton(gameC, "Suggest on Discord", function()
-            pcall(setclipboard, "discord.gg/FQ9ZscTKfT")
+    else
+        local gOk, gErr = pcall(function()
+            local cfg = {}
+            if isfile and isfile("Dumb/Config.json") then
+                cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            end
+            local mod = loadstring(gamePath)()
+            mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
         end)
+        if not gOk then
+            warn("[Dumb UI]: " .. tostring(gErr))
+            mkLabel(gameC, "Error loading script.", T.TextMuted)
+        end
     end
-else
-    local gOk, gErr = pcall(function()
-        local cfg = {}
+
+    -- ── Games List ─────────────────────────────────────────────────────────────────
+    local gameList = {}
+    pcall(function()
+        gameList = httpservice:JSONDecode(game:HttpGet(getgitpath() .. "gameslist.json"))
+    end)
+
+    if #gameList > 0 then
+        for _, g in ipairs(gameList) do
+            if g and g["game"] then
+                local dot = g["status"] == "🟢" and " ●" or g["status"] == "🟡" and " ◐" or " ○"
+                mkButton(gamesC, g["game"] .. dot, function()
+                    pcall(exservice.LaunchExperience, exservice, {placeId = g.id})
+                end)
+            end
+        end
+    else
+        mkLabel(gamesC, "No games available.", T.TextMuted)
+    end
+
+    -- ── Settings ───────────────────────────────────────────────────────────────────
+    local cfg1 = { settings = { disable_3d_rendering = false, auto_rejoin_on_kick = false, toggle_key = "RightShift" } }
+    pcall(function()
         if isfile and isfile("Dumb/Config.json") then
-            cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            local p = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            if p and p.settings then cfg1 = p end
         end
-        local mod = loadstring(gamePath)()
-        mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
     end)
-    if not gOk then
-        warn("[Dumb UI]: " .. tostring(gErr))
-        mkLabel(gameC, "Error loading script.", T.TextMuted)
-    end
-end
 
--- ── Games List ─────────────────────────────────────────────────────────────────
-local gameList = {}
-pcall(function()
-    gameList = httpservice:JSONDecode(game:HttpGet(getgitpath() .. "gameslist.json"))
-end)
+    mkBind(settingsC, "UI Toggle Key", ToggleKey, function(key)
+        ToggleKey = key
+        pcall(function()
+            local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            d.settings = d.settings or {}
+            d.settings.toggle_key = key.Name
+            writefile("Dumb/Config.json", httpservice:JSONEncode(d))
+        end)
+    end)
 
-if #gameList > 0 then
-    for _, g in ipairs(gameList) do
-        if g and g["game"] then
-            local dot = g["status"] == "🟢" and " ●" or g["status"] == "🟡" and " ◐" or " ○"
-            mkButton(gamesC, g["game"] .. dot, function()
-                pcall(exservice.LaunchExperience, exservice, {placeId = g.id})
-            end)
+    mkToggle(settingsC, "Disable 3D Rendering", cfg1.settings.disable_3d_rendering, function(v)
+        pcall(function()
+            local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            d.settings.disable_3d_rendering = v
+            writefile("Dumb/Config.json", httpservice:JSONEncode(d))
+            game:GetService("RunService"):Set3dRenderingEnabled(not v)
+        end)
+    end)
+
+    mkToggle(settingsC, "Auto Rejoin on Kick", cfg1.settings.auto_rejoin_on_kick, function(v)
+        pcall(function()
+            local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+            d.settings.auto_rejoin_on_kick = v
+            writefile("Dumb/Config.json", httpservice:JSONEncode(d))
+            local env = getgenv and getgenv() or _G
+            env.autorjjjj = v
+        end)
+    end)
+
+    mkDivider(settingsC)
+    mkButton(settingsC, "Update Script", function()
+        pcall(function()
+            ScreenGui:Destroy()
+            loadstring(game:HttpGet(getgitpath() .. "init.lua"))()
+        end)
+    end)
+
+    -- ── Credits ────────────────────────────────────────────────────────────────────
+    local creditsList = {}
+    pcall(function()
+        creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath() .. "credits.json"))
+    end)
+
+    if next(creditsList) then
+        for section, people in pairs(creditsList) do
+            mkLabel(creditsC, section, T.TextPri)
+            for _, person in ipairs(people) do
+                mkLabel(creditsC, "  " .. person, T.TextMuted)
+            end
+            mkDivider(creditsC)
         end
+    else
+        mkLabel(creditsC, "No credits.", T.TextMuted)
     end
-else
-    mkLabel(gamesC, "No games available.", T.TextMuted)
-end
-
--- ── Settings ───────────────────────────────────────────────────────────────────
-local cfg1 = { settings = { disable_3d_rendering = false, auto_rejoin_on_kick = false, toggle_key = "RightShift" } }
-pcall(function()
-    if isfile and isfile("Dumb/Config.json") then
-        local p = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-        if p and p.settings then cfg1 = p end
-    end
-end)
-
-mkBind(settingsC, "UI Toggle Key", ToggleKey, function(key)
-    ToggleKey = key
-    pcall(function()
-        local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-        d.settings = d.settings or {}
-        d.settings.toggle_key = key.Name
-        writefile("Dumb/Config.json", httpservice:JSONEncode(d))
-    end)
-end)
-
-mkToggle(settingsC, "Disable 3D Rendering", cfg1.settings.disable_3d_rendering, function(v)
-    pcall(function()
-        local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-        d.settings.disable_3d_rendering = v
-        writefile("Dumb/Config.json", httpservice:JSONEncode(d))
-        game:GetService("RunService"):Set3dRenderingEnabled(not v)
-    end)
-end)
-
-mkToggle(settingsC, "Auto Rejoin on Kick", cfg1.settings.auto_rejoin_on_kick, function(v)
-    pcall(function()
-        local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
-        d.settings.auto_rejoin_on_kick = v
-        writefile("Dumb/Config.json", httpservice:JSONEncode(d))
-        local env = getgenv and getgenv() or _G
-        env.autorjjjj = v
-    end)
-end)
-
-mkDivider(settingsC)
-mkButton(settingsC, "Update Script", function()
-    pcall(function()
-        ScreenGui:Destroy()
-        loadstring(game:HttpGet(getgitpath() .. "init.lua"))()
-    end)
-end)
-
--- ── Credits ────────────────────────────────────────────────────────────────────
-local creditsList = {}
-pcall(function()
-    creditsList = httpservice:JSONDecode(game:HttpGet(getgitpath() .. "credits.json"))
-end)
-
-if next(creditsList) then
-    for section, people in pairs(creditsList) do
-        mkLabel(creditsC, section, T.TextPri)
-        for _, person in ipairs(people) do
-            mkLabel(creditsC, "  " .. person, T.TextMuted)
-        end
-        mkDivider(creditsC)
-    end
-else
-    mkLabel(creditsC, "No credits.", T.TextMuted)
 end
 
 -- ── Loading Animation ──────────────────────────────────────────────────────────
@@ -767,5 +779,12 @@ task.spawn(function()
     
     Main.Visible = true
     Main.Size = UDim2.new(0, 540, 0, 0)
-    TweenService:Create(Main, TweenInfo.new(0.7, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 540, 0, 330)}):Play()
+    
+    -- Animation d'ouverture du Main
+    local tweenOpen = TweenService:Create(Main, TweenInfo.new(0.7, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 540, 0, 330)})
+    tweenOpen:Play()
+    tweenOpen.Completed:Wait() -- On attend que l'animation du home GUI soit terminée
+    
+    -- On charge les scripts une fois l'interface affichée
+    LoadScripts()
 end)
