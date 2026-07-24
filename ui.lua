@@ -61,16 +61,13 @@ Topbar.Size = UDim2.new(1, 0, 0, 26)
 Topbar.BackgroundColor3 = T.Sidebar
 Topbar.BorderSizePixel = 0
 
-local TitleLbl = Instance.new("TextLabel")
-TitleLbl.Parent = Topbar
-TitleLbl.Position = UDim2.new(0, 12, 0, 0)
-TitleLbl.Size = UDim2.new(1, -70, 1, 0)
-TitleLbl.BackgroundTransparency = 1
-TitleLbl.Text = "dumb"
-TitleLbl.TextColor3 = T.TextPri
-TitleLbl.Font = Enum.Font.Gotham
-TitleLbl.TextSize = 12
-TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+local Logo = Instance.new("ImageLabel")
+Logo.Parent = Topbar
+Logo.Position = UDim2.new(0, 12, 0.5, -9)
+Logo.Size = UDim2.new(0, 60, 0, 18)
+Logo.BackgroundTransparency = 1
+Logo.Image = "rbxassetid://139415606656378"
+Logo.ScaleType = Enum.ScaleType.Fit
 
 local function makeTopBtn(icon, xOffset)
     local btn = Instance.new("TextButton")
@@ -110,7 +107,7 @@ ReopenBtn.BorderSizePixel = 0
 ReopenBtn.Text = "dumb"
 ReopenBtn.TextColor3 = T.TextPri
 ReopenBtn.Font = Enum.Font.Gotham
-ReopenBtn.TextSize = 11
+ReopenBtn.TextSize = 13
 ReopenBtn.AutoButtonColor = false
 ReopenBtn.Visible = false
 do
@@ -203,7 +200,7 @@ local function makeTab(name, order)
     Btn.BackgroundTransparency = 1
     Btn.Text = name
     Btn.Font = Enum.Font.Gotham
-    Btn.TextSize = 11
+    Btn.TextSize = 13
     Btn.TextColor3 = T.TextMuted
     Btn.TextXAlignment = Enum.TextXAlignment.Left
     Btn.AutoButtonColor = false
@@ -265,17 +262,19 @@ local function makeTab(name, order)
     local function activate()
         if currentTab == tabObj then return end
         if currentTab then
-            currentTab.Btn.TextColor3 = T.TextMuted
-            currentTab.Btn.BackgroundTransparency = 1
+            TweenService:Create(currentTab.Btn, TweenInfo.new(0.2), {TextColor3 = T.TextMuted, BackgroundTransparency = 1}):Play()
             currentTab.Bar.Visible = false
             currentTab.Scrl.Visible = false
         end
         currentTab = tabObj
-        Btn.TextColor3 = T.TextPri
-        Btn.BackgroundColor3 = T.Card
-        Btn.BackgroundTransparency = 0
+        TweenService:Create(Btn, TweenInfo.new(0.2), {TextColor3 = T.TextPri, BackgroundTransparency = 0, BackgroundColor3 = T.Card}):Play()
+        Bar.Size = UDim2.new(0, 2, 0, 0)
         Bar.Visible = true
+        TweenService:Create(Bar, TweenInfo.new(0.2), {Size = UDim2.new(0, 2, 0, 12)}):Play()
+        
+        Scrl.Position = UDim2.new(0, 10, 0, 0)
         Scrl.Visible = true
+        TweenService:Create(Scrl, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 0, 0, 0)}):Play()
     end
 
     Btn.MouseEnter:Connect(function()
@@ -299,7 +298,7 @@ local function mkLabel(parent, text, clr)
     lbl.Text = text
     lbl.TextColor3 = clr or T.TextMuted
     lbl.Font = Enum.Font.Gotham
-    lbl.TextSize = 11
+    lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.TextWrapped = true
     return lbl
@@ -328,7 +327,7 @@ local function mkButton(parent, text, cb)
     btn.Text = text
     btn.TextColor3 = T.TextPri
     btn.Font = Enum.Font.Gotham
-    btn.TextSize = 11
+    btn.TextSize = 13
     btn.AutoButtonColor = false
     do
         local c = Instance.new("UICorner")
@@ -365,7 +364,7 @@ local function mkToggle(parent, text, default, cb)
     lbl.Text = text
     lbl.TextColor3 = T.TextPri
     lbl.Font = Enum.Font.Gotham
-    lbl.TextSize = 11
+    lbl.TextSize = 13
     lbl.TextXAlignment = Enum.TextXAlignment.Left
 
     local track = Instance.new("Frame")
