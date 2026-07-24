@@ -518,10 +518,10 @@ pcall(function()
     if type(r) == "string" then execName = r end
 end)
 
-mkLabel(homeC, "v0.33 BETA  ·  " .. execName, T.TextMuted)
+mkLabel(homeC, "v0.18 PREVIEW  ·  " .. execName, T.TextMuted)
 mkDivider(homeC)
-mkButton(homeC, "Copy Discord  ( discord.gg/vaehz )", function()
-    pcall(setclipboard, "https://discord.gg/vaehz")
+mkButton(homeC, "Copy Discord  ( discord.gg/FQ9ZscTKfT )", function()
+    pcall(setclipboard, "discord.gg/FQ9ZscTKfT")
 end)
 
 -- ── Game ───────────────────────────────────────────────────────────────────────
