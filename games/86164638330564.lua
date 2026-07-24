@@ -1,6 +1,6 @@
 -- Would You Rather Gear Tower X Script
 
-return function(section, data, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
+return function(section, data, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
     local setdata = data[tostring(game.PlaceId)] or {}
     setdata.autokickeveryone = setdata.autokickeveryone or false
     data[tostring(game.PlaceId)] = setdata

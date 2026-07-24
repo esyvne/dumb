@@ -1,6 +1,6 @@
 -- Flick script
 
-return function(section, data, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
+return function(section, data, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
     local HttpService = game:GetService("HttpService")
 
     local setdata = data[tostring(game.PlaceId)] or {}
@@ -16,7 +16,7 @@ return function(section, data, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox
     end
 
     if section then
-        mkLabel(section, "ESP Settings")
+        mkSection(section, "ESP Settings")
         mkToggle(section, "ESP Enabled", setdata.esp_enabled, function(v)
             setdata.esp_enabled = v
             save()

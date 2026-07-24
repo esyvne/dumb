@@ -63,11 +63,22 @@ Topbar.BorderSizePixel = 0
 
 local Logo = Instance.new("ImageLabel")
 Logo.Parent = Topbar
-Logo.Position = UDim2.new(0, 12, 0.5, -9)
-Logo.Size = UDim2.new(0, 60, 0, 18)
+Logo.Position = UDim2.new(0, 10, 0.5, -9)
+Logo.Size = UDim2.new(0, 18, 0, 18)
 Logo.BackgroundTransparency = 1
 Logo.Image = "rbxassetid://139415606656378"
 Logo.ScaleType = Enum.ScaleType.Fit
+
+local TitleLbl = Instance.new("TextLabel")
+TitleLbl.Parent = Topbar
+TitleLbl.Position = UDim2.new(0, 36, 0, 0)
+TitleLbl.Size = UDim2.new(1, -70, 1, 0)
+TitleLbl.BackgroundTransparency = 1
+TitleLbl.Text = "Dumb"
+TitleLbl.TextColor3 = T.TextPri
+TitleLbl.Font = Enum.Font.Gotham
+TitleLbl.TextSize = 13
+TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
 
 local function makeTopBtn(icon, xOffset)
     local btn = Instance.new("TextButton")
@@ -466,6 +477,31 @@ local function mkTextbox(parent, text, default, cb)
     return row
 end
 
+local function mkSection(parent, text)
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = parent
+    lbl.Size = UDim2.new(1, 0, 0, 24)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = T.TextPri
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 14
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local holder = Instance.new("Frame")
+    holder.Parent = parent
+    holder.Size = UDim2.new(1, 0, 0, 8)
+    holder.BackgroundTransparency = 1
+    local line = Instance.new("Frame")
+    line.Parent = holder
+    line.AnchorPoint = Vector2.new(0, 0.5)
+    line.Position = UDim2.new(0, 0, 0.5, 0)
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.BackgroundColor3 = T.Divider
+    line.BorderSizePixel = 0
+    return lbl
+end
+
 -- ── Build Tabs ─────────────────────────────────────────────────────────────────
 local homeC,     homeAct     = makeTab("Home",     1)
 local gameC,     gameAct     = makeTab("Game",     2)
@@ -503,7 +539,7 @@ if not ok or type(gamePath) ~= "string" or #gamePath == 0 or gamePath:find("404"
                     cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
                 end
                 local mod = loadstring(readfile("Dumb/" .. tostring(game.PlaceId) .. ".lua"))()
-                mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
+                mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
                 localDone = true
             end)
         end
@@ -522,7 +558,7 @@ else
             cfg = httpservice:JSONDecode(readfile("Dumb/Config.json"))
         end
         local mod = loadstring(gamePath)()
-        mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox)
+        mod(gameC, cfg, mkButton, mkToggle, mkLabel, mkDivider, mkTextbox, mkSection)
     end)
     if not gOk then
         warn("[Dumb UI]: " .. tostring(gErr))
