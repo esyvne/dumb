@@ -27,23 +27,30 @@ local T = {
 
 -- ── ScreenGui ──────────────────────────────────────────────────────────────────
 local hui = (gethui and gethui()) or game:GetService("CoreGui")
+local coreGui = game:GetService("CoreGui")
 
--- On utilise getgenv pour garder la trace du GUI de manière 100% fiable entre les exécutions
-if getgenv and getgenv() then
-    local oldGui = getgenv()._DUMB_UI_INSTANCE
-    if oldGui and typeof(oldGui) == "Instance" and oldGui.Parent then
-        -- Le GUI est toujours présent, on annule l'exécution de ce nouveau script
-        return
-    end
+local markerName = "DUMB_UI_MARKER_UNIQUE"
+if coreGui:FindFirstChild(markerName) then
+    -- Le marqueur existe dans le CoreGui, le script a déjà été exécuté.
+    -- On annule donc ce nouveau lancement (on "delete le nouveau").
+    return
 end
+
+-- On place un marqueur global pour les prochaines exécutions
+local marker = Instance.new("Folder")
+marker.Name = markerName
+marker.Parent = coreGui
 
 -- On crée d'abord le nouveau GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KT73GQTQBQBWZZH8CGGFAUQEGOW3NC16MBOZ8KNNOQVQJCVOJJ1LYAT8WT9TH2SL02XHENWPFL8RP9QKFGDYVLJBHVOG36NB04WKNZL4QZZ4APKXP9ORPF0UV6V"
 
-if getgenv and getgenv() then
-    getgenv()._DUMB_UI_INSTANCE = ScreenGui
-end
+-- Si on utilise "Update Script" et que le ScreenGui est détruit, on nettoie le marqueur
+ScreenGui.Destroying:Connect(function()
+    if marker and marker.Parent then
+        marker:Destroy()
+    end
+end)
 
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
