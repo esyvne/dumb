@@ -136,6 +136,17 @@ ReopenBtn.MouseButton1Click:Connect(function()
     Main.Size = UDim2.new(0, 540, 0, 330)
 end)
 
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
+        Main.Visible = not Main.Visible
+        ReopenBtn.Visible = not Main.Visible
+        if Main.Visible then
+            minimized = false
+            Main.Size = UDim2.new(0, 540, 0, 330)
+        end
+    end
+end)
+
 -- ── Dragging ───────────────────────────────────────────────────────────────────
 local dragging, dragInput, mousePos, framePos = false, nil, nil, nil
 Topbar.InputBegan:Connect(function(i)
