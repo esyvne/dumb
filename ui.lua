@@ -509,7 +509,7 @@ local gamesC,    gamesAct    = makeTab("Script",    3)
 local settingsC, settingsAct = makeTab("Settings", 4)
 local creditsC,  creditsAct  = makeTab("Credits",  5)
 
-homeAct() -- open Home by default
+homeAct()
 
 -- ── Home ───────────────────────────────────────────────────────────────────────
 local execName = "Unknown"
