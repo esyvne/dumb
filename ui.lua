@@ -136,8 +136,18 @@ ReopenBtn.MouseButton1Click:Connect(function()
     Main.Size = UDim2.new(0, 540, 0, 330)
 end)
 
+local ToggleKey = Enum.KeyCode.RightShift
+pcall(function()
+    if isfile and isfile("Dumb/Config.json") then
+        local p = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+        if p and p.settings and p.settings.toggle_key then
+            ToggleKey = Enum.KeyCode[p.settings.toggle_key]
+        end
+    end
+end)
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
+    if not gameProcessed and input.KeyCode == ToggleKey then
         Main.Visible = not Main.Visible
         ReopenBtn.Visible = not Main.Visible
         if Main.Visible then
@@ -486,6 +496,64 @@ local function mkTextbox(parent, text, default, cb)
     return row
 end
 
+local function mkBind(parent, text, defaultKey, cb)
+    local row = Instance.new("Frame")
+    row.Parent = parent
+    row.Size = UDim2.new(1, 0, 0, 28)
+    row.BackgroundColor3 = T.Card
+    row.BorderSizePixel = 0
+    do
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 4)
+        c.Parent = row
+    end
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = row
+    lbl.Position = UDim2.new(0, 10, 0, 0)
+    lbl.Size = UDim2.new(0.5, -10, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = T.TextPri
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local btn = Instance.new("TextButton")
+    btn.Parent = row
+    btn.AnchorPoint = Vector2.new(1, 0.5)
+    btn.Position = UDim2.new(1, -10, 0.5, 0)
+    btn.Size = UDim2.new(0, 80, 0, 20)
+    btn.BackgroundColor3 = T.Sidebar
+    btn.BorderSizePixel = 0
+    btn.Text = defaultKey.Name
+    btn.TextColor3 = T.TextPri
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 11
+    btn.AutoButtonColor = false
+    do
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 4)
+        c.Parent = btn
+    end
+
+    local binding = false
+    btn.MouseButton1Click:Connect(function()
+        binding = true
+        btn.Text = "..."
+    end)
+
+    UserInputService.InputBegan:Connect(function(input)
+        if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+            binding = false
+            btn.Text = input.KeyCode.Name
+            pcall(cb, input.KeyCode)
+        end
+    end)
+
+    return row
+end
+
 local function mkSection(parent, text)
     local lbl = Instance.new("TextLabel")
     lbl.Parent = parent
@@ -595,12 +663,22 @@ else
 end
 
 -- ── Settings ───────────────────────────────────────────────────────────────────
-local cfg1 = { settings = { disable_3d_rendering = false, auto_rejoin_on_kick = false } }
+local cfg1 = { settings = { disable_3d_rendering = false, auto_rejoin_on_kick = false, toggle_key = "RightShift" } }
 pcall(function()
     if isfile and isfile("Dumb/Config.json") then
         local p = httpservice:JSONDecode(readfile("Dumb/Config.json"))
         if p and p.settings then cfg1 = p end
     end
+end)
+
+mkBind(settingsC, "UI Toggle Key", ToggleKey, function(key)
+    ToggleKey = key
+    pcall(function()
+        local d = httpservice:JSONDecode(readfile("Dumb/Config.json"))
+        d.settings = d.settings or {}
+        d.settings.toggle_key = key.Name
+        writefile("Dumb/Config.json", httpservice:JSONEncode(d))
+    end)
 end)
 
 mkToggle(settingsC, "Disable 3D Rendering", cfg1.settings.disable_3d_rendering, function(v)
