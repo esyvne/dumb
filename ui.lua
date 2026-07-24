@@ -66,7 +66,7 @@ Logo.Parent = Topbar
 Logo.Position = UDim2.new(0, 10, 0.5, -9)
 Logo.Size = UDim2.new(0, 18, 0, 18)
 Logo.BackgroundTransparency = 1
-Logo.Image = "rbxthumb://type=Asset&id=139415606656378&w=150&h=150"
+Logo.Image = "rbxthumb://type=Asset&id=88750495694095&w=150&h=150"
 Logo.ScaleType = Enum.ScaleType.Fit
 
 local TitleLbl = Instance.new("TextLabel")
